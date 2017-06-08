@@ -55,21 +55,29 @@ ELSE()
     message("-- Found Eigen version: ${Eigen_VERSION}")
 ENDIF()
 
-
+option(USING_QPOASES "Enables the use of QPOases as solver" FALSE)
+if(USING_QPOASES)
+    add_definitions(-DUSING_QPOASES)
+endif()
 
 find_package(EigenLgsm REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(TinyXML REQUIRED)
 find_package(YARP REQUIRED)
-find_package(qpOASES REQUIRED)
+if (USING_QPOASES)
+    find_package(qpOASES)
+endif()
 
 include_directories( AFTER
     ${Eigen_INCLUDE_DIRS}
     ${EigenLgsm_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS}
-    ${qpOASES_INCLUDE_DIRS}
 )
+
+if(USING_QPOASES)
+    include_directories(AFTER ${qpOASES_INCLUDE_DIRS})
+endif()
 
 add_subdirectory(ocra)
 add_subdirectory(wocra)

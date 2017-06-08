@@ -24,7 +24,7 @@ bool ControllerServer::initialize()
     bool res = true;
     model = loadRobotModel();
     firstRun = true;
-    
+
     rState = RobotState(model->nbDofs());
     if(model)
     {
@@ -37,18 +37,21 @@ bool ControllerServer::initialize()
                 internalSolver = std::make_shared<ocra::OneLevelSolverWithQuadProg>();
             }break;
 
-            case QPOASES:
-            {
-                std::cout << "Using qpOASES"<<std::endl;
-                internalSolver = std::make_shared<ocra::OneLevelSolverWithQPOASES>();
-            }break;
-
             default:
             {
-                std::cout << "Using qpOASES [Default]"<<std::endl;
-                internalSolver = std::make_shared<ocra::OneLevelSolverWithQPOASES>();
+                std::cout << "Using QuadProg++ "<<std::endl;
+                internalSolver = std::make_shared<ocra::OneLevelSolverWithQuadProg>();
             }break;
         }
+
+        #ifdef USING_QPOASES
+        if(solverType == QPOASES)
+        {
+            std::cout << "Using qpOASES"<<std::endl;
+            internalSolver = std::make_shared<ocra::OneLevelSolverWithQPOASES>();
+        }
+        #endif //USING_QPOASES
+
 
         // Construct the desired controller.
         switch (controllerType)
