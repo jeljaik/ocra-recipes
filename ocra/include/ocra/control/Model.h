@@ -17,7 +17,11 @@
 #include "ocra/optim/NamedInstance.h"
 #include "ocra/control/ModelContacts.h"
 #include <ocra/util/Macros.h>
+#include <ocra/util/KDLUtilities.h>
 #include <Eigen/Lgsm>
+#include "kdl/frames_io.hpp"
+#include "kdl/frames.hpp"
+
 
 #include <string>
 #include <iostream>
@@ -29,6 +33,16 @@ namespace ocra
   /** @class Model
     *	@brief %Model class.
     *	@warning None
+    *
+    *   @param name Name of the model.
+    *   @param ndofs Total number of degrees of freedom of the model. Includes floating-base.
+    *   @param freeRoot FALSE for floating-base robots. True otherwise.
+    *   @param jointTorqueVariableName Name given to the joint torques variable.
+    *   @param forceVariableName Name given to the force variables.
+    *   @param configurationVariableName Name given to the joint configuration (angles) variable.
+    *   @param internalDofsSuffix Name Suffix appended to the name of the internal degrees of freedom variable (no floating-base).
+    *   @param externalDofsSuffix Name Suffix appended to the name of the floating-base DOF variable.
+    *
     *
     * TODO: complete description
     *
@@ -55,18 +69,24 @@ namespace ocra
     void  setJointVelocities(const Eigen::VectorXd& q_dot);
     void  setFreeFlyerPosition(const Eigen::Displacementd& H_root);
     void  setFreeFlyerVelocity(const Eigen::Twistd& T_root);
+    void  setFreeFlyerPositionKDL(const KDL::Frame& H_root);
+    void  setFreeFlyerVelocityKDL(const KDL::Twist& T_root);
     void  setState(const Eigen::VectorXd& q, const Eigen::VectorXd& q_dot);
     void  setState(const Eigen::Displacementd& H_root, const Eigen::VectorXd& q, const Eigen::Twistd& T_root, const Eigen::VectorXd& q_dot);
+    void  setStateKDL(const KDL::Frame& H_root, const Eigen::VectorXd& q, const KDL::Twist& T_root, const Eigen::VectorXd& q_dot);
     virtual const Eigen::VectorXd& getJointPositions()         const = 0;
     virtual const Eigen::VectorXd& getJointVelocities()        const = 0;
     virtual const Eigen::VectorXd& getJointAccelerations()     const { std::cout << "getJointAccelerations() has not been implemented" << std::endl; };
     virtual const Eigen::VectorXd& getJointTorques()           const = 0;
     virtual const Eigen::Displacementd& getFreeFlyerPosition() const = 0;
     virtual const Eigen::Twistd& getFreeFlyerVelocity()        const = 0;
+    virtual const KDL::Frame& getFreeFlyerPositionKDL() const = 0;
+    virtual const KDL::Twist& getFreeFlyerVelocityKDL()        const = 0;
 
     //get whole body data
       //dofs
     int                       nbDofs()              const;
+    /** Number of internal degrees of freedom, i.e. without the 6 DOF of the floating base*/
     int                       nbInternalDofs()      const;
     bool                      hasFixedRoot()        const;
     virtual int               nbSegments()          const = 0;
@@ -94,6 +114,8 @@ namespace ocra
     //segment data
     virtual const Eigen::Displacementd&  getSegmentPosition(int index) const = 0;
     virtual const Eigen::Twistd&         getSegmentVelocity(int index) const = 0;
+    virtual const KDL::Frame&            getSegmentPositionKDL(int index) const = 0;
+    virtual const KDL::Twist&            getSegmentVelocityKDL(int index) const = 0;
     virtual const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJacobian(int index) const = 0;
     virtual const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJdot(int index)     const = 0;
     virtual const Eigen::Twistd&         getSegmentJdotQdot(int index) const = 0;
@@ -108,8 +130,14 @@ namespace ocra
     const Eigen::Displacementd&  getSegmentPosition(const std::string& segName) const {
         return getSegmentPosition(getSegmentIndex(segName));
     }
-    const Eigen::Twistd&         getSegmentVelocity(const std::string& segName) const {
+    const Eigen::Twistd& getSegmentVelocity(const std::string& segName) const {
         return getSegmentVelocity(getSegmentIndex(segName));
+    }
+    const KDL::Frame&  getSegmentPositionKDL(const std::string& segName) const {
+        //TODO: Implement
+    }
+    const KDL::Twist&  getSegmentVelocityKDL(const std::string& segName) const {
+        //TODO: Implement
     }
     const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJacobian(const std::string& segName) const {
         return getSegmentJacobian(getSegmentIndex(segName));
@@ -119,6 +147,9 @@ namespace ocra
     }
     const Eigen::Twistd&         getSegmentJdotQdot(const std::string& segName) const {
         return getSegmentJdotQdot(getSegmentIndex(segName));
+    }
+    const KDL::Twist&         getSegmentJdotQdotKDL(const std::string& segName) const {
+        //TODO: Implement
     }
     const Eigen::Matrix<double,6,Eigen::Dynamic>& getJointJacobian(const std::string& segName) const {
         return getJointJacobian(getSegmentIndex(segName));
@@ -183,11 +214,14 @@ namespace ocra
   protected:
     virtual void  doSetState(const Eigen::VectorXd& q, const Eigen::VectorXd& q_dot){};
     virtual void  doSetState(const Eigen::Displacementd& H_root, const Eigen::VectorXd& q, const Eigen::Twistd& T_root, const Eigen::VectorXd& q_dot){};
+    virtual void  doSetStateKDL(const KDL::Frame& H_root, const Eigen::VectorXd& q, const KDL::Twist& T_root, const Eigen::VectorXd& q_dot){};
 
     virtual void  doSetJointPositions(const Eigen::VectorXd& q) = 0;
     virtual void  doSetJointVelocities(const Eigen::VectorXd& q_dot) = 0;
     virtual void  doSetFreeFlyerPosition(const Eigen::Displacementd& H_root) = 0;
     virtual void  doSetFreeFlyerVelocity(const Eigen::Twistd& T_root) = 0;
+    virtual void  doSetFreeFlyerPositionKDL(const KDL::Frame& H_root) = 0;
+    virtual void  doSetFreeFlyerVelocityKDL(const KDL::Twist& T_root) = 0;
 
     virtual int                 doGetSegmentIndex(const std::string& name)  const = 0;
     virtual const std::string&  doGetSegmentName(int index)                 const = 0;
@@ -209,7 +243,7 @@ namespace ocra
     // ------------------------ private methods ---------------------------------
   private:
     void invalidate(int timestamp);
-
+    void invalidateKDL(int timestamp);
     // ------------------------ private static methods --------------------------
   private:
 
@@ -221,13 +255,20 @@ namespace ocra
 
     // ------------------------ private members ---------------------------------
   private:
+
+    /** Total number of degrees of freedom, floating-base included */
     int         _dofs;
+    /** When FALSE, we're dealing with a floating-base robot such as a biped */
     bool        _fixedRoot;
     VectorXd    _jointDamping;
+    /** Generalized joint torques variable (floating-base included) */
     Variable*   _tau;
+    /** Generalized joint angles variable (floating-base included) */
     Variable*   _q;
+    /** Genralized joint velocities variable (floating-base included) */
     Variable*   _q_dot;
-    Variable*   _q_ddot;    
+    /** Generalized joint accelerations variable (floating-base included) */
+    Variable*   _q_ddot;
 
     ModelContacts* _modelContacts;
     // ------------------------ private static members --------------------------

@@ -3,6 +3,7 @@
 
 namespace ocra
 {
+
   Model::Model(const std::string& name, int ndofs, bool freeRoot, const std::string& jointTorqueVariableName,
                const std::string& forceVariableName, const std::string& configurationVariableName,
                const std::string& internalDofsSuffix, const std::string& externalDofsSuffix)
@@ -31,7 +32,7 @@ namespace ocra
 
     _q->connect<EVT_CHANGE_VALUE>(*this, &Model::invalidate);
     _q_dot->connect<EVT_CHANGE_VALUE>(*this, &Model::invalidate);
-    
+
   }
 
   Model::~Model()
@@ -101,6 +102,22 @@ namespace ocra
     propagate<EVT_CHANGE_VALUE>();
   }
 
+  void Model::setFreeFlyerPositionKDL(const KDL::Frame& H_root)
+  {
+      assert(!_fixedRoot);
+      doSetFreeFlyerPositionKDL(H_root);
+      //we do not set H_root in q_root on purpose: H_root is in SE3 while q_root is in R^6
+      propagate<EVT_CHANGE_VALUE>();
+  }
+
+  void Model::setFreeFlyerVelocityKDL(const KDL::Twist& T_root)
+  {
+      assert(!_fixedRoot);
+      doSetFreeFlyerVelocityKDL(T_root);
+      getRootVelocityVariable().setValue(ocra::util::KDLTwistToEigenVectorXd(T_root));
+      propagate<EVT_CHANGE_VALUE>();
+  }
+
   void Model::setState(const VectorXd& q, const VectorXd& q_dot)
   {
     setJointPositions(q);
@@ -118,6 +135,18 @@ namespace ocra
       setFreeFlyerVelocity(T_root);
     }
     doSetState(H_root, q, T_root, q_dot);
+  }
+
+  void Model::setStateKDL(const KDL::Frame& H_root, const VectorXd& q, const KDL::Twist& T_root, const VectorXd& q_dot)
+  {
+      setJointPositions(q);
+      setJointVelocities(q_dot);
+      if(!_fixedRoot) // floating base
+      {
+          setFreeFlyerPositionKDL(H_root);
+          setFreeFlyerVelocityKDL(T_root);
+      }
+      doSetStateKDL(H_root, q, T_root, q_dot);
   }
 
   Variable& Model::getConfigurationVariable() const
@@ -146,6 +175,10 @@ namespace ocra
     return (*static_cast<CompositeVariable*>(_q))(0);
   }
 
+
+  /**
+   Returns the internal joint configuration (without floating-base).
+   */
   Variable& Model::getInternalConfigurationVariable() const
   {
     if (_fixedRoot)
@@ -154,12 +187,20 @@ namespace ocra
       return (*static_cast<CompositeVariable*>(_q))(1);
   }
 
+
+  /**
+   Returns the root velocity variable, which is extracted from the composite
+   generalized velocities variable */
   Variable& Model::getRootVelocityVariable() const
   {
     assert(!_fixedRoot);
     return (*static_cast<CompositeVariable*>(_q_dot))(0);
   }
 
+
+  /**
+   Returns the internal joint velocities (without floating-base).
+   */
   Variable& Model::getInternalVelocityVariable() const
   {
     if (_fixedRoot)
@@ -168,12 +209,22 @@ namespace ocra
       return (*static_cast<CompositeVariable*>(_q_dot))(1);
   }
 
+
+  /**
+   Returns the root acceleration variable, which is extracted from the composite
+   generalized accelerations variable.
+   */
   Variable& Model::getRootAccelerationVariable() const
   {
     assert(!_fixedRoot);
     return (*static_cast<CompositeVariable*>(_q_ddot))(0);
   }
 
+
+  /**
+   Returns the internal acceleration variable, which is extracted from the composite
+   generalized acceleration variable.
+   */
   Variable& Model::getInternalAccelerationVariable() const
   {
     if (_fixedRoot)
@@ -189,11 +240,24 @@ namespace ocra
   }
 
 
+  /**
+   Gets the index corresponding to the name of a given segment.
+
+   @param name Name of the segment.
+   @return Integer index of the corresponding segment.
+   */
   int Model::getSegmentIndex(const std::string& name) const
   {
     return doGetSegmentIndex(name);
   }
 
+
+  /**
+   Given the integer index of a segment, retrieves the corresponding name.
+
+   @param index Segment index.
+   @return Name of the segment.
+   */
   const std::string& Model::getSegmentName(int index) const
   {
     assert(index>=0 && index <nbSegments());
@@ -225,8 +289,21 @@ namespace ocra
     doInvalidate();
     doSetJointPositions(getInternalConfigurationVariable().getValue());
     doSetJointVelocities(getInternalVelocityVariable().getValue());
+    //TODO: Change the following lines to use KDL instead
     if (!_fixedRoot)
       doSetFreeFlyerVelocity(Twistd(getRootVelocityVariable().getValue()));
+  }
+
+  void Model::invalidateKDL(int timestamp)
+  {
+    doInvalidate();
+    doSetJointPositions(getInternalConfigurationVariable().getValue());
+    doSetJointVelocities(getInternalVelocityVariable().getValue());
+    
+    //TODO: Create a KDL::Twist from an Eigen::VectorXd (tmpRootVel)
+    Eigen::VectorXd tmpRootVel(getRootVelocityVariable().getValue());
+    if (!_fixedRoot)
+        doSetFreeFlyerVelocityKDL(ocra::util::EigenVectorToKDLTwist(tmpRootVel));
   }
 
   //TODO: Clean this shit up...

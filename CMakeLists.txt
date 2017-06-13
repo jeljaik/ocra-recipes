@@ -64,6 +64,7 @@ find_package(EigenLgsm REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(TinyXML REQUIRED)
 find_package(YARP REQUIRED)
+find_package(orocos_kdl REQUIRED)
 if (USING_QPOASES)
     find_package(qpOASES)
 endif()
@@ -73,7 +74,10 @@ include_directories( AFTER
     ${EigenLgsm_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${YARP_INCLUDE_DIRS}
+    ${orocos_kdl_INCLUDE_DIRS}
 )
+
+link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 if(USING_QPOASES)
     include_directories(AFTER ${qpOASES_INCLUDE_DIRS})
