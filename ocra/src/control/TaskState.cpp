@@ -24,6 +24,7 @@ TaskState::TaskState()
     torque = Eigen::VectorXd::Zero(1);
 
     wrench = Eigen::Wrenchd(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    wrenchKDL = KDL::Wrench();
 }
 TaskState::~TaskState()
 {

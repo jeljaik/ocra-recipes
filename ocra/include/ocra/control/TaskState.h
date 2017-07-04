@@ -30,6 +30,7 @@ private:
     Eigen::VectorXd torque;
 
     Eigen::Wrenchd wrench;
+    KDL::Wrench wrenchKDL;
 
 
     bool containsPosition;
