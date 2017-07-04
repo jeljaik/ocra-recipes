@@ -7,6 +7,7 @@
 #include <ocra/util/YarpUtilities.h>
 #include <ocra/control/TaskYarpInterfaceVocab.h>
 #include <yarp/os/Bottle.h>
+#include <kdl/frames.hpp>
 
 namespace ocra {
 
@@ -18,6 +19,10 @@ private:
     Eigen::Displacementd position;
     Eigen::Twistd velocity;
     Eigen::Twistd acceleration;
+
+    KDL::Frame positionKDL;
+    KDL::Twist velocityKDL;
+    KDL::Twist accelerationKDL;
 
     Eigen::VectorXd q;
     Eigen::VectorXd qd;

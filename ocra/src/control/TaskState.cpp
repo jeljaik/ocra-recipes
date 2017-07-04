@@ -15,7 +15,9 @@ TaskState::TaskState()
     position = Eigen::Displacementd::Identity();
     velocity = Eigen::Twistd(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     acceleration = Eigen::Twistd(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
+    positionKDL = KDL::Frame();
+    velocityKDL = KDL::Twist();
+    accelerationKDL = KDL::Twist();
     q = Eigen::VectorXd::Zero(1);
     qd = Eigen::VectorXd::Zero(1);
     qdd = Eigen::VectorXd::Zero(1);
