@@ -62,13 +62,17 @@ public:
     KDL::Wrench getWrenchKDL() const;
 
     void setPosition(const Eigen::Displacementd& newPosition);
+    void setPositionKDL(const KDL::Frame& newPosition);
     void setVelocity(const Eigen::Twistd& newVelocity);
+    void setVelocityKDL(const KDL::Twist& newVelocity);
     void setAcceleration(const Eigen::Twistd& newAcceleration);
+    void setAccelerationKDL(const KDL::Twist& newAcceleration);
     void setQ(const Eigen::VectorXd& newQ);
     void setQd(const Eigen::VectorXd& newQd);
     void setQdd(const Eigen::VectorXd& newQdd);
     void setTorque(const Eigen::VectorXd& newTorque);
     void setWrench(const Eigen::Wrenchd& newWrench);
+    void setWrenchKDL(const KDL::Wrench& newWrench);
 
     bool hasPosition() const ;
     bool hasVelocity() const ;

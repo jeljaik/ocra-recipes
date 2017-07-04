@@ -102,6 +102,12 @@ void TaskState::setPosition(const Eigen::Displacementd& newPosition)
     this->containsPosition = true;
 }
 
+void TaskState::setPositionKDL(const KDL::Frame& newPosition)
+{
+    this->positionKDL = newPosition;
+    this->containsPosition = true;
+}
+
 
 void TaskState::setVelocity(const Eigen::Twistd& newVelocity)
 {
@@ -109,10 +115,22 @@ void TaskState::setVelocity(const Eigen::Twistd& newVelocity)
     this->containsVelocity = true;
 }
 
+void TaskState::setVelocityKDL(const KDL::Twist& newVelocity)
+{
+    this->velocityKDL = newVelocity;
+    this->containsVelocity = true;
+}
+
 
 void TaskState::setAcceleration(const Eigen::Twistd& newAcceleration)
 {
     this->acceleration = newAcceleration;
+    this->containsAcceleration = true;
+}
+
+void TaskState::setAccelerationKDL(const KDL::Twist& newAcceleration)
+{
+    this->accelerationKDL = newAcceleration;
     this->containsAcceleration = true;
 }
 
@@ -148,6 +166,12 @@ void TaskState::setTorque(const Eigen::VectorXd& newTorque)
 void TaskState::setWrench(const Eigen::Wrenchd& newWrench)
 {
     this->wrench = newWrench;
+    this->containsWrench = true;
+}
+
+void TaskState::setWrenchKDL(const KDL::Wrench& newWrench)
+{
+    this->wrenchKDL = newWrench;
     this->containsWrench = true;
 }
 
