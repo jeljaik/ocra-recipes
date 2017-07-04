@@ -42,6 +42,9 @@ public:
     Eigen::VectorXd             qd;
     Eigen::Displacementd    H_root;
     Eigen::Twistd           T_root;
+    // KDL Versions
+    KDL::Frame              H_rootKDL;
+    KDL::Twist              T_rootKDL;
 
 private:
     int nDoF;

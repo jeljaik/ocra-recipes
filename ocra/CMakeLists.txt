@@ -6,7 +6,17 @@ file(GLOB_RECURSE control_srcs src/control/*.cpp)
 file(GLOB_RECURSE optim_srcs src/optim/*.cpp)
 file(GLOB_RECURSE util_srcs src/util/*.cpp)
 
+file(GLOB_RECURSE control_headers include/ocra/control/*.h)
+file(GLOB_RECURSE optim_headers include/ocra/optim/*.h)
+file(GLOB_RECURSE util_headers include/ocra/util/*.h)
 
+# Define groupings for source/headers files in IDE project generation
+source_group("ocra-control-src" FILES ${control_srcs})
+source_group("ocra-control-headers" FILES ${control_headers})
+source_group("ocra-optim-src" FILES ${optim_srcs})
+source_group("ocra-optim-headers" FILES ${optim_headers})
+source_group("ocra-util-src" FILES ${util_srcs})
+source_group("ocra-util-headers" FILES ${util_headers})
 
 
 set(OCRA_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE PATH "")
@@ -35,9 +45,9 @@ ENDIF()
 
 
 
-add_library(ocra-control ${control_srcs})
-add_library(ocra-optim ${optim_srcs})
-add_library(ocra-util ${util_srcs})
+add_library(ocra-control ${control_srcs} ${control_headers})
+add_library(ocra-optim ${optim_srcs} ${optim_headers})
+add_library(ocra-util ${util_srcs} ${util_headers})
 
 LIST(APPEND link_libs   ${Boost_LIBRARIES}
                         ${YARP_LIBRARIES}

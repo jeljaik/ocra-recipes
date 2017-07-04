@@ -22,6 +22,12 @@ File history:
 #include <boost/noncopyable.hpp>
 #include <yarp/os/Semaphore.h>
 
+#include "kdl/frames_io.hpp"
+#include "kdl/frames.hpp"
+#include <ocra/util/ErrorsHelper.h>
+#include <ocra/util/KDLUtilities.h>
+
+
 namespace ocra
 {
   class Model;
@@ -36,7 +42,7 @@ namespace ocra
   A frame is always associated to a manikin's model. However, it does not always depend
   on its configuration.
   If it depends on the configuration of the manikin's model, then the method
-  ControlFrame::sependsOnModelConfiguration will return true.
+  ControlFrame::dependsOnModelConfiguration will return true.
   Otherwise, this method returns false, and ControlFrame::getJacobian
   will return a null matrix, whose size be 6 x getModel().nbDofs().
   */
@@ -59,6 +65,11 @@ namespace ocra
     virtual Eigen::Matrix<double,6,Eigen::Dynamic> getJacobian() const = 0;
     virtual bool dependsOnModelConfiguration() const = 0;
     virtual const Model& getModel() const = 0;
+      
+      virtual KDL::Frame getPositionKDL() const;
+      virtual KDL::Twist getVelocityKDL() const;
+      virtual KDL::Twist getAccelerationKDL() const;
+      
   };
 
 
@@ -91,6 +102,14 @@ namespace ocra
     void setVelocity(const Eigen::Twistd& T);
     void setAcceleration(const Eigen::Twistd& gamma);
     void setWrench(const Eigen::Wrenchd& W);
+      
+      // KDL Changes
+      KDL::Frame getPositionKDL() const;
+      KDL::Twist getVelocityKDL() const;
+      KDL::Twist getAccelerationKDL() const;
+      void setPositionKDL(const KDL::Frame &H);
+      void setVelocityKDL(const KDL::Twist &T);
+      void setAccelerationKDL(const KDL::Twist &gamma);
 
   private:
     struct Pimpl;
@@ -110,6 +129,8 @@ namespace ocra
     SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const Eigen::Displacementd& H_local);
     SegmentFrame(const std::string& name, const Model& model, int segmentId);
     SegmentFrame(const std::string& name, const Model& model, int segmentId, const Eigen::Displacementd& H_local);
+    // KDL Migration
+      SegmentFrame(const std::string& name, const Model& model, int segmentId, const KDL::Frame& H_localKDL);
 
     Eigen::Displacementd getPosition() const;
     Eigen::Twistd getVelocity() const;
@@ -119,7 +140,12 @@ namespace ocra
     bool dependsOnModelConfiguration() const;
     const Model& getModel() const;
     int getSegmentIndex() const;
-
+      
+      // KDL migration
+      KDL::Frame getPositionKDL() const;
+      KDL::Twist getVelocityKDL() const;
+      KDL::Twist getAccelerationKDL() const;
+      
   private:
     struct Pimpl;
     boost::shared_ptr<Pimpl> pimpl;
@@ -143,6 +169,11 @@ namespace ocra
     Eigen::Matrix<double,6,Eigen::Dynamic> getJacobian() const;
     bool dependsOnModelConfiguration() const;
     const Model& getModel() const;
+
+      // KDL migration
+      KDL::Twist getVelocityKDL() const;
+      KDL::Twist getAccelerationKDL() const;
+      Eigen::Wrenchd getWrenchKDL() const;
 
   private:
     struct Pimpl;

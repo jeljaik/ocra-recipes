@@ -97,6 +97,7 @@ bool ControllerServer::initialize()
             this->controller->setContactState(1,1);
         }
         updateModel();
+        updateModelKDL();
     }
     return res;
 }
@@ -110,6 +111,7 @@ const Eigen::VectorXd& ControllerServer::computeTorques()
 void ControllerServer::computeTorques(Eigen::VectorXd& torques)
 {
     updateModel();
+    updateModelKDL();
     controller->computeOutput(torques);
 }
 
@@ -120,6 +122,19 @@ void ControllerServer::updateModel()
         model->setState(rState.q, rState.qd);
     }else{
         model->setState(rState.H_root, rState.q, rState.T_root, rState.qd);
+    }
+    if (!statesPort.write(rState)) {
+        OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
+    }
+}
+
+void ControllerServer::updateModelKDL()
+{
+    getRobotStateKDL(rState.q, rState.qd, rState.H_rootKDL, rState.T_rootKDL);
+    if (model->hasFixedRoot()){
+        model->setState(rState.q, rState.qd);
+    } else {
+        model->setStateKDL(rState.H_rootKDL, rState.q, rState.T_rootKDL, rState.qd);
     }
     if (!statesPort.write(rState)) {
         OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
