@@ -36,18 +36,30 @@ Eigen::Displacementd TaskState::getPosition() const
     return this->position;
 }
 
+KDL::Frame TaskState::getPositionKDL() const
+{
+    return this->positionKDL;
+}
 
 Eigen::Twistd TaskState::getVelocity() const
 {
     return this->velocity;
 }
 
+KDL::Twist TaskState::getVelocityKDL() const
+{
+    return this->velocityKDL;
+}
 
 Eigen::Twistd TaskState::getAcceleration() const
 {
     return this->acceleration;
 }
 
+KDL::Twist TaskState::getAccelerationKDL() const
+{
+    return this->accelerationKDL;
+}
 
 Eigen::VectorXd TaskState::getQ() const
 {
@@ -76,6 +88,11 @@ Eigen::VectorXd TaskState::getTorque() const
 Eigen::Wrenchd TaskState::getWrench() const
 {
     return this->wrench;
+}
+
+KDL::Wrench TaskState::getWrenchKDL() const
+{
+    return this->wrenchKDL;
 }
 
 

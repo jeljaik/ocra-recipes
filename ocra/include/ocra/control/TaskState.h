@@ -49,13 +49,17 @@ public:
     virtual ~TaskState();
 
     Eigen::Displacementd getPosition() const;
+    KDL::Frame getPositionKDL() const;
     Eigen::Twistd getVelocity() const;
+    KDL::Twist getVelocityKDL() const;
     Eigen::Twistd getAcceleration() const;
+    KDL::Twist getAccelerationKDL() const;
     Eigen::VectorXd getQ() const;
     Eigen::VectorXd getQd() const;
     Eigen::VectorXd getQdd() const;
     Eigen::VectorXd getTorque() const;
     Eigen::Wrenchd getWrench() const;
+    KDL::Wrench getWrenchKDL() const;
 
     void setPosition(const Eigen::Displacementd& newPosition);
     void setVelocity(const Eigen::Twistd& newVelocity);
