@@ -127,6 +127,8 @@ namespace ocra
   public:
     SegmentFrame(const std::string& name, const Model& model, const std::string& segname);
     SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const Eigen::Displacementd& H_local);
+      // KDL migration
+      SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const KDL::Frame& H_local);
     SegmentFrame(const std::string& name, const Model& model, int segmentId);
     SegmentFrame(const std::string& name, const Model& model, int segmentId, const Eigen::Displacementd& H_local);
     // KDL Migration

@@ -102,6 +102,29 @@ namespace ocra {
         }
         
         /**
+         Multiplication operator between Eigen Matrices and KDL Twists.
+         
+         @param eigMatrix Eigen Matrix. Must have 6 columns.
+         @param kdlTwist KDL Twist.
+         @return Result of the multiplication as a KDL Twist.
+         */
+        template <typename Derived>
+        KDL::Twist operator*(Eigen::MatrixBase<Derived> &eigMatrix, const KDL::Twist &kdlTwist)  {
+            Eigen::VectorXd tmpEig(6);
+            tmpEig(0) = kdlTwist(0);
+            tmpEig(1) = kdlTwist(1);
+            tmpEig(2) = kdlTwist(2);
+            tmpEig(3) = kdlTwist(3);
+            tmpEig(4) = kdlTwist(4);
+            tmpEig(5) = kdlTwist(5);
+            
+            Eigen::VectorXd res(6);
+            res = eigMatrix*tmpEig;
+            KDL::Twist outPut = KDL::Twist(KDL::Vector(res(0), res(1), res(2)), KDL::Vector(res(3), res(4), res(5)));
+            return outPut;
+        }
+        
+        /**
          Computes the skew symmetric matrix from an input KDL frame.
          
          @param inputFrame KDL Frame.

@@ -164,8 +164,8 @@ namespace ocra
       , Adj_H_segment_in_controlledFrame(H_local.inverse().adjoint())
     {}
       
-      // KDL Migration
-      Pimpl(const Model& m, const std::string& segname, KDL::Frame& H_local)
+      // KDL Migration of the constructor above
+      Pimpl(const Model& m, const std::string& segname, const KDL::Frame& H_local)
       : model(m)
       , index(model.getSegmentIndex(segname))
       , Adj_H_segment_in_controlledFrame(ocra::util::getKDLFrameAdjoint(H_local.Inverse()))
@@ -178,6 +178,7 @@ namespace ocra
       , index(segmentId)
       , H_localFrame(Displacementd::Identity())
       , Adj_H_segment_in_controlledFrame(MatrixXd::Identity(6, 6))
+      , H_localFrameKDL(KDL::Frame::Identity())
     {}
 
     Pimpl(const Model& m, int segmentId, const Eigen::Displacementd& H_local)
@@ -187,13 +188,12 @@ namespace ocra
       , Adj_H_segment_in_controlledFrame(H_local.inverse().adjoint())
     {}
       
-      // KDL Migration
-      //TODO: How do we substitute Adj_H_segment_in_controlledFrame with its KDL version
+      // KDL Migration of the constructor above
       Pimpl(const Model& m, int segmentId, const KDL::Frame& H_local)
       : model(m)
       , index(segmentId)
+      , Adj_H_segment_in_controlledFrame(ocra::util::getKDLFrameAdjoint(H_local.Inverse()))
       , H_localFrameKDL(H_local)
-      //      , Adj_H_segment_in_controlledFrame(H_local.inverse().adjoint())
       {}
 
   };
@@ -209,6 +209,14 @@ namespace ocra
     , pimpl(new Pimpl(model, segname, H_local))
   {
   }
+    
+    //KDL Migration of the constructor above
+    SegmentFrame::SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const KDL::Frame& H_local)
+    : ControlFrame(name)
+    , pimpl(new Pimpl(model, segname, H_local))
+    {
+    }
+
 
   SegmentFrame::SegmentFrame(const std::string& name, const Model& model, int segmentId)
     : ControlFrame(name)
@@ -221,6 +229,14 @@ namespace ocra
     , pimpl(new Pimpl(model, segmentId, H_local))
   {
   }
+    
+    // KDL migration of the constructor above
+    SegmentFrame::SegmentFrame(const std::string& name, const Model& model, int segmentId, const KDL::Frame& H_local)
+    : ControlFrame(name)
+    , pimpl(new Pimpl(model, segmentId, H_local))
+    {
+    }
+
 
   Eigen::Displacementd SegmentFrame::getPosition() const
   {
@@ -237,6 +253,24 @@ namespace ocra
     return Eigen::Twistd::Zero();
   }
 
+    // KDL migration of getPosition, getVelocity and getAcceleration
+    KDL::Frame SegmentFrame::getPositionKDL() const
+    {
+        //TODO: Implement
+        return pimpl->model.getSegmentPositionKDL(pimpl->index) * pimpl->H_localFrameKDL;
+    }
+    
+    KDL::Twist SegmentFrame::getVelocityKDL() const
+    {
+        //TODO: Implement
+//        return pimpl->Adj_H_segment_in_controlledFrame * pimpl->model.getSegmentVelocityKDL(pimpl->index);
+    }
+    
+    KDL::Twist SegmentFrame::getAccelerationKDL() const
+    {
+        //TODO: Implement
+    }
+    
   Eigen::Wrenchd SegmentFrame::getWrench() const
   {
     return Eigen::Wrenchd::Zero();
