@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Lgsm>
 #include <yarp/os/Bottle.h>
+#include <kdl/frames.hpp>
 
 namespace ocra
 {
@@ -183,7 +184,7 @@ inline void pourTwistdIntoBottle(const Eigen::Twistd& twist, yarp::os::Bottle& b
     double vx = twist(3);
     double vy = twist(4);
     double vz = twist(5);
-    
+
      bottle.addDouble(rx);
      bottle.addDouble(ry);
      bottle.addDouble(rz);
@@ -203,6 +204,89 @@ inline void pourWrenchdIntoBottle(const Eigen::Wrenchd& wrench, yarp::os::Bottle
     bottle.addDouble(wrench.fx());
     bottle.addDouble(wrench.fy());
     bottle.addDouble(wrench.fz());
+}
+
+inline void pourFrameIntoBottle(const KDL::Frame& frame, yarp::os::Bottle& bottle)
+{
+    const int KDL_FRAME_AS_VECTOR_SIZE = 16;
+    bottle.addInt(KDL_FRAME_AS_VECTOR_SIZE);
+
+    for (int i=0; i<4; ++i)
+    {
+        for(int j=0; j<4; ++j)
+        {
+            bottle.addDouble(frame(i,j));
+        }
+    }
+}
+
+inline void pourTwistIntoBottle(const KDL::Twist& twist, yarp::os::Bottle& bottle)
+{
+    const int TWIST_VECTOR_SIZE = 6;
+    bottle.addInt(TWIST_VECTOR_SIZE);
+
+    bottle.addDouble(twist(0));
+    bottle.addDouble(twist(1));
+    bottle.addDouble(twist(2));
+    bottle.addDouble(twist(3));
+    bottle.addDouble(twist(4));
+    bottle.addDouble(twist(5));
+}
+
+inline void pourWrenchIntoBottle(const KDL::Wrench& wrench, yarp::os::Bottle& bottle)
+{
+    const int WRENCH_VECTOR_SIZE = 6;
+    bottle.addInt(WRENCH_VECTOR_SIZE);
+
+    bottle.addDouble(wrench(0));
+    bottle.addDouble(wrench(1));
+    bottle.addDouble(wrench(2));
+    bottle.addDouble(wrench(3));
+    bottle.addDouble(wrench(4));
+    bottle.addDouble(wrench(5));
+}
+
+
+inline KDL::Frame pourBottleIntoFrame(yarp::os::Bottle bottle, int& indexesToSkip)
+{
+    int nVals = bottle.get(0).asInt();
+    double frame_as_array[nVals];
+    for (int i=0; i<nVals; ++i)
+    {
+        frame_as_array[i] = bottle.get(i).asDouble();
+    }
+    KDL::Frame frame;
+    frame.Make4x4(frame_as_array);
+    indexesToSkip = nVals + 1;
+    return frame;
+}
+
+inline KDL::Twist pourBottleIntoTwist(yarp::os::Bottle bottle, int& indexesToSkip)
+{
+    int nVals = bottle.get(0).asInt();
+    double vx = bottle.get(1).asDouble();
+    double vy = bottle.get(2).asDouble();
+    double vz = bottle.get(3).asDouble();
+    double rx = bottle.get(4).asDouble();
+    double ry = bottle.get(5).asDouble();
+    double rz = bottle.get(6).asDouble();
+    KDL::Twist twist(KDL::Vector(vx,vy,vz),KDL::Vector(rx,ry,rz));
+    indexesToSkip = nVals + 1;
+    return twist;
+}
+
+inline KDL::Wrench pourBottleIntoWrench(yarp::os::Bottle bottle, int& indexesToSkip)
+{
+    int nVals = bottle.get(0).asInt();
+    double fx = bottle.get(1).asDouble();
+    double fy = bottle.get(2).asDouble();
+    double fz = bottle.get(3).asDouble();
+    double taux = bottle.get(4).asDouble();
+    double tauy = bottle.get(5).asDouble();
+    double tauz = bottle.get(6).asDouble();
+    KDL::Wrench wrench(KDL::Vector(fx,fy,fz), KDL::Vector(taux,tauy,tauz));
+    indexesToSkip = nVals + 1;
+    return wrench;
 }
 
 inline yarp::os::Bottle trimBottle(const yarp::os::Bottle& bottle, int startIndex, int endIndex=-1)
