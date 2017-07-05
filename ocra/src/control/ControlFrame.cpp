@@ -328,6 +328,22 @@ namespace ocra
     return Eigen::Twistd::Zero();
   }
 
+    // KDL Implementation
+    KDL::Frame CoMFrame::getPositionKDL() const
+    {
+        //TODO Implement
+    }
+    
+    KDL::Twist CoMFrame::getVelocityKDL() const
+    {
+        //TODO implement
+    }
+    
+    KDL::Twist CoMFrame::getAccelerationKDL() const
+    {
+        //TODO implement
+    }
+    
   Eigen::Wrenchd CoMFrame::getWrench() const
   {
     return Eigen::Wrenchd::Zero();
