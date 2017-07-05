@@ -119,6 +119,7 @@ namespace ocra
     virtual const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJacobian(int index) const = 0;
     virtual const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJdot(int index)     const = 0;
     virtual const Eigen::Twistd&         getSegmentJdotQdot(int index) const = 0;
+      virtual const KDL::Twist&          getSegmentJdotQdotKDL(int index) const = 0;
     virtual const Eigen::Matrix<double,6,Eigen::Dynamic>& getJointJacobian(int index) const = 0;
     virtual double                       getSegmentMass(int index) const = 0;
     virtual const Eigen::Vector3d&       getSegmentCoM(int index) const = 0;
@@ -134,10 +135,10 @@ namespace ocra
         return getSegmentVelocity(getSegmentIndex(segName));
     }
     const KDL::Frame&  getSegmentPositionKDL(const std::string& segName) const {
-        //TODO: Implement
+        return getSegmentPositionKDL(getSegmentIndex(segName));
     }
     const KDL::Twist&  getSegmentVelocityKDL(const std::string& segName) const {
-        //TODO: Implement
+        return getSegmentVelocityKDL(getSegmentIndex(segName));
     }
     const Eigen::Matrix<double,6,Eigen::Dynamic>&     getSegmentJacobian(const std::string& segName) const {
         return getSegmentJacobian(getSegmentIndex(segName));
@@ -149,7 +150,7 @@ namespace ocra
         return getSegmentJdotQdot(getSegmentIndex(segName));
     }
     const KDL::Twist&         getSegmentJdotQdotKDL(const std::string& segName) const {
-        //TODO: Implement
+        return getSegmentJdotQdotKDL(getSegmentIndex(segName));
     }
     const Eigen::Matrix<double,6,Eigen::Dynamic>& getJointJacobian(const std::string& segName) const {
         return getJointJacobian(getSegmentIndex(segName));

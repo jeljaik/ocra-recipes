@@ -66,9 +66,9 @@ namespace ocra
     virtual bool dependsOnModelConfiguration() const = 0;
     virtual const Model& getModel() const = 0;
       
-      virtual KDL::Frame getPositionKDL() const;
-      virtual KDL::Twist getVelocityKDL() const;
-      virtual KDL::Twist getAccelerationKDL() const;
+//      virtual KDL::Frame getPositionKDL() const;
+//      virtual KDL::Twist getVelocityKDL() const;
+//      virtual KDL::Twist getAccelerationKDL() const;
       
   };
 
@@ -127,6 +127,8 @@ namespace ocra
   public:
     SegmentFrame(const std::string& name, const Model& model, const std::string& segname);
     SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const Eigen::Displacementd& H_local);
+      // KDL migration
+      SegmentFrame(const std::string& name, const Model& model, const std::string& segname, const KDL::Frame& H_local);
     SegmentFrame(const std::string& name, const Model& model, int segmentId);
     SegmentFrame(const std::string& name, const Model& model, int segmentId, const Eigen::Displacementd& H_local);
     // KDL Migration
@@ -171,6 +173,7 @@ namespace ocra
     const Model& getModel() const;
 
       // KDL migration
+      KDL::Frame getPositionKDL() const;
       KDL::Twist getVelocityKDL() const;
       KDL::Twist getAccelerationKDL() const;
       Eigen::Wrenchd getWrenchKDL() const;
