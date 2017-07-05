@@ -41,6 +41,10 @@ private:
     bool containsQdd;
     bool containsTorque;
     bool containsWrench;
+    bool containsPositionKDL;
+    bool containsVelocityKDL;
+    bool containsAccelerationKDL;
+    bool containsWrenchKDL;
 
     static const int TASK_STATE_BOTTLE = 12345;
 
@@ -75,13 +79,17 @@ public:
     void setWrenchKDL(const KDL::Wrench& newWrench);
 
     bool hasPosition() const ;
+    bool hasPositionKDL() const ;
     bool hasVelocity() const ;
+    bool hasVelocityKDL() const ;
     bool hasAcceleration() const ;
+    bool hasAccelerationKDL() const ;
     bool hasQ() const ;
     bool hasQd() const ;
     bool hasQdd() const ;
     bool hasTorque() const ;
     bool hasWrench() const ;
+    bool hasWrenchKDL() const ;
 
 
     bool extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfOptions);

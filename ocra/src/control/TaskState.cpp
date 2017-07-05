@@ -11,6 +11,10 @@ TaskState::TaskState()
 , containsQdd(false)
 , containsTorque(false)
 , containsWrench(false)
+, containsPositionKDL(false)
+, containsVelocityKDL(false)
+, containsAccelerationKDL(false)
+, containsWrenchKDL(false)
 {
     position = Eigen::Displacementd::Identity();
     velocity = Eigen::Twistd(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -105,7 +109,7 @@ void TaskState::setPosition(const Eigen::Displacementd& newPosition)
 void TaskState::setPositionKDL(const KDL::Frame& newPosition)
 {
     this->positionKDL = newPosition;
-    this->containsPosition = true;
+    this->containsPositionKDL = true;
 }
 
 
@@ -118,7 +122,7 @@ void TaskState::setVelocity(const Eigen::Twistd& newVelocity)
 void TaskState::setVelocityKDL(const KDL::Twist& newVelocity)
 {
     this->velocityKDL = newVelocity;
-    this->containsVelocity = true;
+    this->containsVelocityKDL = true;
 }
 
 
@@ -131,7 +135,7 @@ void TaskState::setAcceleration(const Eigen::Twistd& newAcceleration)
 void TaskState::setAccelerationKDL(const KDL::Twist& newAcceleration)
 {
     this->accelerationKDL = newAcceleration;
-    this->containsAcceleration = true;
+    this->containsAccelerationKDL = true;
 }
 
 
@@ -172,22 +176,34 @@ void TaskState::setWrench(const Eigen::Wrenchd& newWrench)
 void TaskState::setWrenchKDL(const KDL::Wrench& newWrench)
 {
     this->wrenchKDL = newWrench;
-    this->containsWrench = true;
+    this->containsWrenchKDL = true;
 }
 
 bool TaskState::hasPosition() const
 {
     return this->containsPosition;
 }
+bool TaskState::hasPositionKDL() const
+{
+    return this->containsPositionKDL;
+}
 
 bool TaskState::hasVelocity() const
 {
     return this->containsVelocity;
 }
+bool TaskState::hasVelocityKDL() const
+{
+    return this->containsVelocityKDL;
+}
 
 bool TaskState::hasAcceleration() const
 {
     return this->containsAcceleration;
+}
+bool TaskState::hasAccelerationKDL() const
+{
+    return this->containsAccelerationKDL;
 }
 
 bool TaskState::hasQ() const
@@ -214,6 +230,10 @@ bool TaskState::hasWrench() const
 {
     return this->containsWrench;
 }
+bool TaskState::hasWrenchKDL() const
+{
+    return this->containsWrenchKDL;
+}
 
 bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfState)
 {
@@ -228,6 +248,11 @@ bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfSta
         this->containsQdd = bottle.get(++i).asBool();
         this->containsTorque = bottle.get(++i).asBool();
         this->containsWrench = bottle.get(++i).asBool();
+        this->containsPositionKDL = bottle.get(++i).asBool();
+        this->containsVelocityKDL = bottle.get(++i).asBool();
+        this->containsAccelerationKDL = bottle.get(++i).asBool();
+        this->containsWrenchKDL = bottle.get(++i).asBool();
+
         int indexesToSkip;
 
 
@@ -264,6 +289,23 @@ bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfSta
             i += indexesToSkip;
         }
 
+        if (this->hasPositionKDL()) {
+            this->setPositionKDL( util::pourBottleIntoFrame(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+        if (this->hasVelocityKDL()) {
+            this->setVelocityKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+        if (this->hasAccelerationKDL()) {
+            this->setAccelerationKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+        if (this->hasWrenchKDL()) {
+            this->setWrenchKDL( util::pourBottleIntoWrench(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+
         sizeOfState = i;
         return true;
     }
@@ -283,6 +325,10 @@ void TaskState::putIntoBottle(yarp::os::Bottle& bottle) const
     bottle.addInt(this->hasQdd());
     bottle.addInt(this->hasTorque());
     bottle.addInt(this->hasWrench());
+    bottle.addInt(this->hasPositionKDL());
+    bottle.addInt(this->hasVelocityKDL());
+    bottle.addInt(this->hasAccelerationKDL());
+    bottle.addInt(this->hasWrenchKDL());
 
     if (this->hasPosition()) {
         util::pourDisplacementdIntoBottle(this->getPosition(), bottle);
@@ -307,6 +353,19 @@ void TaskState::putIntoBottle(yarp::os::Bottle& bottle) const
     }
     if (this->hasWrench()) {
         util::pourWrenchdIntoBottle(this->getWrench(), bottle);
+    }
+
+    if (this->hasPositionKDL()) {
+        util::pourFrameIntoBottle(this->getPositionKDL(), bottle);
+    }
+    if (this->hasVelocityKDL()) {
+        util::pourTwistIntoBottle(this->getVelocityKDL(), bottle);
+    }
+    if (this->hasAccelerationKDL()) {
+        util::pourTwistIntoBottle(this->getAccelerationKDL(), bottle);
+    }
+    if (this->hasWrenchKDL()) {
+        util::pourWrenchIntoBottle(this->getWrenchKDL(), bottle);
     }
 
 }
