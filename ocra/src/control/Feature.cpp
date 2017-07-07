@@ -299,6 +299,14 @@ namespace ocra
       }
   }
 
+    // KDL-migration
+#ifdef OCRA_USES_KDL
+    const Eigen::MatrixXd& PositionFeature::getSpaceTransformKDL() const
+    {
+        
+    }
+#endif // OCRA_USES_KDL
+
 
   // --- POINT CONTACT ------------------------------------------
 

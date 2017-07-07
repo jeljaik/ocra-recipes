@@ -127,6 +127,11 @@ namespace ocra
 
     TaskState getState() const;
     void setState(const TaskState& newState);
+      
+    // KDL-migration
+#ifdef OCRA_USES_KDL
+      const Eigen::MatrixXd& getSpaceTransformKDL() const;
+#endif // OCRA_USES_KDL
 
   private:
     struct Pimpl;

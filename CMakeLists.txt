@@ -60,6 +60,11 @@ if(USING_QPOASES)
     add_definitions(-DUSING_QPOASES)
 endif()
 
+option(OCRA_USES_KDL "Enables all KDL-based methods for migration" FALSE)
+if(OCRA_USES_KDL)
+    add_definitions(-DOCRA_USES_KDL)
+endif()
+
 find_package(EigenLgsm REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(TinyXML REQUIRED)
