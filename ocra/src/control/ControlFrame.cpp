@@ -3,6 +3,8 @@
 #include "ocra/control/Model.h"
 #include <iostream>
 
+using namespace ocra::util;
+
 namespace ocra
 {
   // --- ABSTRACT -----------------------------------------------
@@ -31,6 +33,7 @@ namespace ocra
       KDL::Frame H_KDL;
       KDL::Twist T_KDL;
       KDL::Twist gamma_KDL;
+      KDL::Wrench W_KDL;
 
     Pimpl(const Model& m)
       : model(m)
@@ -42,6 +45,7 @@ namespace ocra
       , H_KDL(KDL::Frame::Identity())
       , T_KDL(KDL::Twist::Zero())
       , gamma_KDL(KDL::Twist::Zero())
+      , W_KDL(KDL::Wrench::Zero())
     {}
   };
 
@@ -122,6 +126,11 @@ namespace ocra
         return pimpl->gamma_KDL;
     }
     
+    KDL::Wrench TargetFrame::getWrenchKDL() const
+    {
+        return pimpl->W_KDL;
+    }
+    
     void TargetFrame::setPositionKDL(const KDL::Frame &H)
     {
         pimpl->H_KDL = H;
@@ -135,6 +144,11 @@ namespace ocra
     void TargetFrame::setAccelerationKDL(const KDL::Twist &gamma)
     {
         pimpl->gamma_KDL = gamma;
+    }
+    
+    void TargetFrame::setWrenchKDL(const KDL::Wrench &W)
+    {
+        pimpl->W_KDL = W;
     }
 
 
@@ -256,19 +270,23 @@ namespace ocra
     // KDL migration of getPosition, getVelocity and getAcceleration
     KDL::Frame SegmentFrame::getPositionKDL() const
     {
-        //TODO: Implement
         return pimpl->model.getSegmentPositionKDL(pimpl->index) * pimpl->H_localFrameKDL;
     }
     
     KDL::Twist SegmentFrame::getVelocityKDL() const
     {
-        //TODO: Implement
-//        return pimpl->Adj_H_segment_in_controlledFrame * pimpl->model.getSegmentVelocityKDL(pimpl->index);
+        return pimpl->Adj_H_segment_in_controlledFrame * pimpl->model.getSegmentVelocityKDL(pimpl->index);
     }
     
     KDL::Twist SegmentFrame::getAccelerationKDL() const
     {
-        //TODO: Implement
+        // The default constructor should return a zero twist.
+        return KDL::Twist();
+    }
+    
+    KDL::Wrench SegmentFrame::getWrenchKDL() const
+    {
+        return KDL::Wrench::Zero();
     }
     
   Eigen::Wrenchd SegmentFrame::getWrench() const
@@ -331,17 +349,32 @@ namespace ocra
     // KDL Implementation
     KDL::Frame CoMFrame::getPositionKDL() const
     {
-        //TODO Implement
+        Eigen::Vector3d tmp = pimpl->model.getCoMPosition();
+        KDL::Vector tmpVec(tmp(0),tmp(1),tmp(2));
+        KDL::Frame tmpFrame(tmpVec); // Rotation matrix defaults to identity as in the LGSM version
+        return tmpFrame;
     }
     
     KDL::Twist CoMFrame::getVelocityKDL() const
     {
-        //TODO implement
+        // Zero angular velocity
+        KDL::Vector angVel = KDL::Vector::Zero(); // Default constructor does not initialize to zero.
+        Eigen::Vector3d comVelfromModel = pimpl->model.getCoMVelocity();
+        KDL::Vector linVel(comVelfromModel(0), comVelfromModel(1), comVelfromModel(2));
+        // Build twist
+        KDL::Twist tmpTwist(linVel, angVel);
+        return tmpTwist;
     }
     
     KDL::Twist CoMFrame::getAccelerationKDL() const
     {
-        //TODO implement
+        // Default constructor of KDL::Twist initializes to zero.
+        return KDL::Twist::Twist();
+    }
+    
+    KDL::Wrench CoMFrame::getWrenchKDL() const
+    {
+        return KDL::Wrench::Zero();
     }
     
   Eigen::Wrenchd CoMFrame::getWrench() const
