@@ -303,8 +303,105 @@ namespace ocra
 #ifdef OCRA_USES_KDL
     const Eigen::MatrixXd& PositionFeature::getSpaceTransformKDL() const
     {
-        
+        //TODO: Review the assumption that the adjoint of a quaternion in LGSM is equivalent to the rotation matrix of a KDL frame.
+        Eigen::Matrix3d controlFrameRotation = ocra::util::rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
+        pimpl->spaceTransform = pimpl->u.transpose() * controlFrameRotation;
+        return pimpl->spaceTransform;
     }
+    
+    const Eigen::VectorXd& PositionFeature::computeEffortKDL(const Feature& featureDes) const
+    {
+        const PositionFeature& sdes = dynamic_cast<const PositionFeature&>(featureDes);
+        KDL::Vector forceDiff = pimpl->controlFrame->getWrenchKDL().force - sdes.pimpl->controlFrame->getWrenchKDL().force;
+        pimpl->effort = pimpl->u.transpose() * ocra::util::KDLVectorToEigenVector3d(forceDiff);
+        return pimpl->effort;
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeEffortKDL() const
+    {
+        pimpl->effort = pimpl->u.transpose() * ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getWrenchKDL().force);
+        return pimpl->effort;
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeAccelerationKDL(const Feature& featureDes) const
+    {
+        const PositionFeature& sdes = dynamic_cast<const PositionFeature&>(featureDes);
+        Eigen::Vector3d accDiff = ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getAccelerationKDL().vel - sdes.pimpl->controlFrame->getAccelerationKDL().vel);
+        pimpl->acceleration = pimpl->u.transpose() * (accDiff);
+        return pimpl->acceleration;
+
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeAccelerationKDL() const
+    {
+        Eigen::Vector3d linAcc = ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getAccelerationKDL().vel);
+        pimpl->acceleration = pimpl->u.transpose() * linAcc;
+        return pimpl->acceleration;
+
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeErrorKDL(const Feature& featureDes) const
+    {
+        const PositionFeature& sdes = dynamic_cast<const PositionFeature&>(featureDes);
+        KDL::Vector transDiffKDL = pimpl->controlFrame->getPositionKDL().p - sdes.pimpl->controlFrame->getPositionKDL().p;
+        Eigen::Vector3d transDiff = ocra::util::KDLVectorToEigenVector3d(transDiffKDL);
+        pimpl->error = pimpl->u.transpose() * transDiff;
+        return pimpl->error;
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeErrorKDL() const
+    {
+        Eigen::Vector3d tmp = ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getPositionKDL().p);
+        pimpl->error = pimpl->u.transpose() * tmp;
+        return pimpl->error;
+    }
+
+    const Eigen::VectorXd& PositionFeature::computeErrorDotKDL(const Feature& featureDes) const
+    {
+        const PositionFeature& sdes = dynamic_cast<const PositionFeature&>(featureDes);
+        KDL::Vector linVelKDL = pimpl->controlFrame->getVelocityKDL().vel - sdes.pimpl->controlFrame->getVelocityKDL().vel;
+        Eigen::Vector3d linVel = ocra::util::KDLVectorToEigenVector3d(linVelKDL);
+        pimpl->errorDot = pimpl->u.transpose() * linVel;
+        return pimpl->errorDot;
+    }
+    
+    const Eigen::VectorXd& PositionFeature::computeErrorDotKDL() const
+    {
+        KDL::Vector tmpLinVel = pimpl->controlFrame->getVelocityKDL().vel;
+        pimpl->errorDot = pimpl->u.transpose() * ocra::util::KDLVectorToEigenVector3d(tmpLinVel);
+        return pimpl->errorDot;
+    }
+    
+    TaskState PositionFeature::getStateKDL() const
+    {
+        TaskState state;
+        state.setPositionKDL(pimpl->controlFrame->getPositionKDL());
+        state.setVelocityKDL(pimpl->controlFrame->getVelocityKDL());
+        return state;
+    }
+    
+    void PositionFeature::setStateKDL(const TaskState& newState)
+    {
+        try {
+            TargetFrame::Ptr targetFrame = std::dynamic_pointer_cast<TargetFrame>(pimpl->controlFrame);
+            if(newState.hasPositionKDL()) {
+                targetFrame->setPositionKDL(newState.getPositionKDL());
+            }
+            if(newState.hasVelocityKDL()) {
+                targetFrame->setVelocityKDL(newState.getVelocityKDL());
+            }
+            if(newState.hasAccelerationKDL()) {
+                targetFrame->setAccelerationKDL(newState.getAccelerationKDL());
+            }
+            if(newState.hasWrenchKDL()) {
+                targetFrame->setWrenchKDL(newState.getWrenchKDL());
+            }
+        } catch (int errCode) {
+            std::cout << "You cannot set the state of this feature because it is not a desired feature. It must be constructed with a TargetFrame." << errCode << std::endl;
+        }
+    }
+
+
 #endif // OCRA_USES_KDL
 
 

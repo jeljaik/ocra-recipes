@@ -188,19 +188,32 @@ namespace ocra {
             
         }
         
-        // /**
-        //  Returns pointer to data stored in KDL Twist. Well, actually to the copy of this data.
-        //
-        //  @param kdlTwist Input KDL Twist.
-        //  @return Pointer to data.
-        //  */
-        // double* getTwistData(const KDL::Twist &kdlTwist) {
-        //     std::vector<double> outTwist(3);
-        //     outTwist.assign(&kdlTwist.vel.data[0], &kdlTwist.vel.data[0] + 3);
-        //     outTwist.insert(outTwist.end(), &kdlTwist.rot.data[0], &kdlTwist.rot.data[0] + 3);
-        //     return outTwist.data();
-        // }
+        /**
+         Takes a KDL Frame and returns its underlying 3x3 rotation matrix.
 
+         @param inputFrame KDL Input frame.
+         @return Corresponding 3D rotation matrix.
+         */
+        inline Eigen::Matrix3d rotationMatrixFromKDLFrame(const KDL::Frame &inputFrame) {
+            Eigen::Matrix3d rot;
+            Eigen::MatrixXd H(4,4);
+            H = ocra::util::KDLFrameToEigenHomogeneous(inputFrame);
+            rot = H.block(0,0,3,3);
+            return rot;
+        }
+        
+        /**
+         Transforms a KDL Vector (a 3-dimensional quantity) into an Eigen 3D vector.
+
+         @param inputVector KDL Vector.
+         @return Corresponding 3-dimensional Eigen vector.
+         */
+        inline Eigen::Vector3d KDLVectorToEigenVector3d(const KDL::Vector &inputVector) {
+            Eigen::Vector3d output;
+            output << inputVector(0), inputVector(1), inputVector(2);
+            return output;
+        }
+        
     } // namespace util
 } // namespace ocra
 #endif // OCRA_UTIL_KDL_UTILITIES_H
