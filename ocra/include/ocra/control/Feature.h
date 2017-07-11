@@ -322,6 +322,19 @@ namespace ocra
         TaskState getState() const;
         void setState(const TaskState& newState);
         
+        // KDL-MIGRATION OF POSITIONFEATURE
+#ifdef OCRA_USES_KDL
+        const Eigen::VectorXd& computeEffortKDL(const Feature& featureDes) const;
+        const Eigen::VectorXd& computeEffortKDL() const;
+        const Eigen::VectorXd& computeAccelerationKDL(const Feature& featureDes) const;
+        const Eigen::VectorXd& computeAccelerationKDL() const;
+        const Eigen::VectorXd& computeErrorKDL(const Feature& featureDes) const;
+        const Eigen::VectorXd& computeErrorKDL() const;
+        const Eigen::VectorXd& computeErrorDotKDL(const Feature& featureDes) const;
+        const Eigen::VectorXd& computeErrorDotKDL() const;
+        TaskState getStateKDL() const;
+        void setStateKDL(const TaskState& newState);
+#endif
     private:
         struct Pimpl;
         boost::shared_ptr<Pimpl> pimpl;

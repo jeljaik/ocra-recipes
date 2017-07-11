@@ -153,7 +153,7 @@ namespace ocra {
             KDL::Frame copyInput = input;
             Eigen::VectorXd H_vec(16);
             copyInput.Make4x4(H_vec.data());
-            output << H_vec;
+            output = Eigen::Map<Eigen::MatrixXd>(H.data(),4,4);
             output.transposeInPlace();
             return output;
         }
