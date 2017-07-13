@@ -821,19 +821,31 @@ namespace ocra
     }
     const Eigen::VectorXd& OrientationFeature::computeErrorKDL(const Feature& featureDes) const
     {
-        //TODO: Implement. What do we do about log?
+        //TODO: REVIEW! wr.t. OrientationFeature::computeError.
         const OrientationFeature& sdes = dynamic_cast<const OrientationFeature&>(featureDes);
 
         using namespace ocra::util;
-        const Eigen::Matrix3d& R = rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
+//        const Eigen::Matrix3d& R = rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
         const Eigen::Matrix3d& Rdes = rotationMatrixFromKDLFrame(sdes.pimpl->controlFrame->getPositionKDL());
-//        pimpl->error = Rdes*((Rdes.inverse()*R).log());
+        
+        const KDL::Frame& frame = pimpl->controlFrame->getPositionKDL();
+        const KDL::Frame& frameDes = sdes.pimpl->controlFrame->getPositionKDL();
+        const KDL::Frame tmp = frameDes.Inverse()*frame;
+        Eigen::Vector3d tmpLog;
+        quaternionLogFromKDLFrame(tmp, tmpLog);
+        pimpl->error = Rdes*tmpLog;
         return pimpl->error;
     }
     const Eigen::VectorXd& OrientationFeature::computeErrorKDL() const
     {
-        //TODO: Implement. What do we do about log on quaternions?
+        //TODO: REVIEW!! w.r.t OrientationFeature::computeError()
+        const KDL::Frame& tmp = pimpl->controlFrame->getPositionKDL();
+        Eigen::Vector3d tmpLog;
+        ocra::util::quaternionLogFromKDLFrame(tmp, tmpLog);
+        pimpl->error = tmpLog;
+        return pimpl->error;
     }
+    
     const Eigen::VectorXd& OrientationFeature::computeErrorDotKDL(const Feature& featureDes) const
     {
         const OrientationFeature& sdes = dynamic_cast<const OrientationFeature&>(featureDes);
