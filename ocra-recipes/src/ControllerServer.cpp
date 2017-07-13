@@ -96,8 +96,11 @@ bool ControllerServer::initialize()
         if (!model->hasFixedRoot()) {
             this->controller->setContactState(1,1);
         }
+#ifndef OCRA_USES_KDL
         updateModel();
+#else
         updateModelKDL();
+#endif
     }
     return res;
 }
@@ -110,8 +113,11 @@ const Eigen::VectorXd& ControllerServer::computeTorques()
 
 void ControllerServer::computeTorques(Eigen::VectorXd& torques)
 {
+#ifndef OCRA_USES_KDL
     updateModel();
+#else
     updateModelKDL();
+#endif
     controller->computeOutput(torques);
 }
 
