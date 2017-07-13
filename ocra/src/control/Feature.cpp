@@ -415,7 +415,12 @@ namespace ocra
 
   const VectorXd& PointContactFeature::computeEffort() const
   {
+#ifndef OCRA_USES_KDL
     pimpl->effort = pimpl->controlFrame->getWrench().getForce();
+#else
+      KDL::Vector effortKDL = pimpl->controlFrame->getWrenchKDL().force;
+      pimpl->effort = ocra::util::KDLVectorToEigenVector3d(effortKDL);
+#endif
     return pimpl->effort;
   }
 
@@ -426,7 +431,12 @@ namespace ocra
 
   const VectorXd& PointContactFeature::computeAcceleration() const
   {
+#ifndef OCRA_USES_KDL
     pimpl->acceleration = pimpl->controlFrame->getAcceleration().getLinearVelocity();
+#else
+      KDL::Vector acc = pimpl->controlFrame->getAccelerationKDL().vel;
+      pimpl->acceleration = ocra::util::KDLVectorToEigenVector3d(acc);
+#endif
     return pimpl->acceleration;
   }
 
@@ -437,10 +447,15 @@ namespace ocra
 
   const VectorXd& PointContactFeature::computeError() const
   {
+#ifndef OCRA_USES_KDL
 //    const Vector3d& e0 = pimpl->controlFrame->getPosition().getTranslation();
 //    pimpl->error = pimpl->controlFrame->getPosition().getRotation().inverse() * e0;
 
     pimpl->error = pimpl->controlFrame->getPosition().getTranslation();
+#else
+      KDL::Vector pos = pimpl->controlFrame->getPositionKDL().p;
+      pimpl->error = ocra::util::KDLVectorToEigenVector3d(pos);
+#endif
     return pimpl->error;
   }
 
@@ -451,7 +466,12 @@ namespace ocra
 
   const VectorXd& PointContactFeature::computeErrorDot() const
   {
+#ifndef OCRA_USES_KDL
     pimpl->errorDot = pimpl->controlFrame->getVelocity().getLinearVelocity();
+#else
+      KDL::Vector vel = pimpl->controlFrame->getVelocityKDL().vel;
+      pimpl->errorDot = ocra::util::KDLVectorToEigenVector3d(vel);
+#endif
     return pimpl->errorDot;
   }
 
@@ -500,16 +520,23 @@ namespace ocra
   TaskState PointContactFeature::getState() const
   {
       TaskState state;
+#ifndef OCRA_USES_KDL
       state.setPosition(pimpl->controlFrame->getPosition());
       state.setVelocity(pimpl->controlFrame->getVelocity());
       state.setAcceleration(pimpl->controlFrame->getAcceleration());
       state.setWrench(pimpl->controlFrame->getWrench());
-
+#else
+      state.setPositionKDL(pimpl->controlFrame->getPositionKDL());
+      state.setVelocityKDL(pimpl->controlFrame->getVelocityKDL());
+      state.setAccelerationKDL(pimpl->controlFrame->getAccelerationKDL());
+      state.setWrenchKDL(pimpl->controlFrame->getWrenchKDL());
+#endif
       return state;
   }
 
   void PointContactFeature::setState(const TaskState& newState)
   {
+#ifndef OCRA_USES_KDL
       try {
           TargetFrame::Ptr targetFrame = std::dynamic_pointer_cast<TargetFrame>(pimpl->controlFrame);
           if(newState.hasPosition()) {
@@ -527,6 +554,25 @@ namespace ocra
       } catch (int errCode) {
           std::cout << "You cannot set the state of this feature because it is not a desired feature. It must be constructed with a TargetFrame." << errCode << std::endl;
       }
+#else
+      try {
+          TargetFrame::Ptr targetFrame = std::dynamic_pointer_cast<TargetFrame>(pimpl->controlFrame);
+          if(newState.hasPositionKDL()) {
+              targetFrame->setPositionKDL(newState.getPositionKDL());
+          }
+          if(newState.hasVelocityKDL()) {
+              targetFrame->setVelocityKDL(newState.getVelocityKDL());
+          }
+          if(newState.hasAccelerationKDL()) {
+              targetFrame->setAccelerationKDL(newState.getAccelerationKDL());
+          }
+          if(newState.hasWrenchKDL()) {
+              targetFrame->setWrenchKDL(newState.getWrenchKDL());
+          }
+      } catch (int errCode) {
+          std::cout << "You cannot set the state of this feature because it is not a desired feature. It must be constructed with a TargetFrame." << errCode << std::endl;
+      }
+#endif
   }
 
   // --- ORIENTATION --------------------------------------------
