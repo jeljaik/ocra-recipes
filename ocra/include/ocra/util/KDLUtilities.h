@@ -40,6 +40,36 @@ namespace ocra {
         }
 
         /**
+         Takes a KDL Wrench and converts it into an Eigen Vector. The convention used is the opposite of KDL, first torque followed by force.
+
+         @param kdlWrench Input KDL wrench.
+         @return Corresponding Eigen Vector.
+         */
+        inline Eigen::VectorXd KDLWrenchToEigenVectorXd(const KDL::Wrench& kdlWrench)
+        {
+            Eigen::VectorXd tmpVec(6);
+            //  Torque - Force
+            tmpVec << kdlWrench(3), kdlWrench(4), kdlWrench(5), kdlWrench(0), kdlWrench(1), kdlWrench(2);
+            return tmpVec;
+        }
+
+        /**
+         Takes a six-dimentional Eigen Vector representing a wrench and turns it into a KDL Wrench.
+
+         @param eigVector Input Eigen Vector wrench.
+         @return Corresponding KDL Wrench.
+         */
+        inline KDL::Wrench EigenVectorToKDLWrench(const Eigen::VectorXd& eigVector)
+        {
+            if (eigVector.size() != 6)
+                throw std::runtime_error("[ocra::util::EigenVectorToKDLWrench] wrongly sized Eigen Vector");
+            KDL::Vector tmpTorque = KDL::Vector(eigVector(0), eigVector(1), eigVector(2));
+            KDL::Vector tmpForce = KDL::Vector(eigVector(3), eigVector(4), eigVector(5));
+            KDL::Wrench tmpWrench = KDL::Wrench(tmpForce, tmpTorque);
+            return tmpWrench;
+        }
+
+        /**
          Addition between an Eigen Vector and a KDL Twist
 
          @param eigVector Eigen Vector. Should be of size 6x1.
@@ -99,10 +129,10 @@ namespace ocra {
             KDL::Twist outPut = KDL::Twist(KDL::Vector(res(0), res(1), res(2)), KDL::Vector(res(3), res(4), res(5)));
             return outPut;
         }
-        
+
 //        /**
 //         Multiplication operator between Eigen Matrices and KDL Twists.
-//         
+//
 //         @param eigMatrix Eigen Matrix. Must have 6 columns.
 //         @param kdlTwist KDL Twist.
 //         @return Result of the multiplication as a KDL Twist.
@@ -116,16 +146,16 @@ namespace ocra {
 //            tmpEig(3) = kdlTwist(3);
 //            tmpEig(4) = kdlTwist(4);
 //            tmpEig(5) = kdlTwist(5);
-//            
+//
 //            Eigen::VectorXd res(6);
 //            res = eigMatrix*tmpEig;
 //            KDL::Twist outPut = KDL::Twist(KDL::Vector(res(0), res(1), res(2)), KDL::Vector(res(3), res(4), res(5)));
 //            return outPut;
 //        }
-        
+
         /**
          Computes the skew symmetric matrix from an input KDL frame.
-         
+
          @param inputFrame KDL Frame.
          @return Skew symmetric matrix.
          */
@@ -140,10 +170,10 @@ namespace ocra {
             return skew;
         }
 
-        
+
         /**
          Takes a KDL Frame and transforms it into an Eigen 4x4 matrix.
-         
+
          @param  input Input KDL rotation matrix.
          @return output Output Eigen 3D matrix.
          */
@@ -156,15 +186,15 @@ namespace ocra {
             output.transposeInPlace();
             return output;
         }
-        
+
         /**
          Gets the adjoint of a KDL::Frame, i.e. given
            adj = [R       0;
                  S(p)*R   R]
-         
+
          for H = [R  p;
                   0  1]
-         
+
           where S(P) is the skew symmetric matrix corresponding to the cross
           product operation.
 
@@ -184,9 +214,9 @@ namespace ocra {
             adjoint.block(3,3,3,3) = tmpHomogeneous.block(0,0,3,3);
             adjoint.block(3,0,3,3) = computeSkewSymmetric(inputFrame) * tmpHomogeneous.block(0,0,3,3);
             return adjoint;
-            
+
         }
-        
+
         /**
          Takes a KDL Frame and returns its underlying 3x3 rotation matrix.
 
@@ -200,7 +230,7 @@ namespace ocra {
             rot = H.block(0,0,3,3);
             return rot;
         }
-        
+
         /**
          Transforms a KDL Vector (a 3-dimensional quantity) into an Eigen 3D vector.
 
@@ -212,10 +242,10 @@ namespace ocra {
             output << inputVector(0), inputVector(1), inputVector(2);
             return output;
         }
-        
+
         /**
          Implements the capitalized logarithmic map, which directly provides the anlge phi and axis u of rotation in cartesian 3D space, in the form u*phi. It returns only the vector coefficients of the resulting quaternion (to comply with EigenLGSM).
-         
+
          @param[in] q Input quaternion. Use a fixed-sized Eigen vector, e.g. Eigen::Vector4d.
          @param[out] log Three-dimensional logarithm of the input quaternion. Use a fixed-size Eigen vector, e.g. Eigen::Vector3d.
          @note Modify this method for it to take a KDL frame as input, instead of the quaternion. Or write another one with this functionality
@@ -231,7 +261,7 @@ namespace ocra {
             tmp = (phi/qv_norm)*q;
             log = tmp.head(3);
         }
-        
+
         template <typename Derived>
         void quaternionLogFromKDLFrame(const KDL::Frame &kdl_frame, Eigen::MatrixBase<Derived>& log) {
             Eigen::Vector4d quat;
@@ -239,7 +269,7 @@ namespace ocra {
             quaternionLog(quat, log);
         }
 
-        
+
     } // namespace util
 } // namespace ocra
 #endif // OCRA_UTIL_KDL_UTILITIES_H
