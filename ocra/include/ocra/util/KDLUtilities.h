@@ -8,10 +8,9 @@
 
 namespace ocra {
     namespace util {
-        
+
         /**
-         Takes a KDL Twist and converts it into an Eigen Vector. The convention used is the same
-         as in KDL, first linear velocity followed by angular velocity.
+         Takes a KDL Twist and converts it into an Eigen Vector. The convention used is the opposite of KDL, first angular velocity followed by linear velocity.
 
          @param kdlTwist Input KDL twist.
          @return Corresponding Eigen Vector.
@@ -19,11 +18,11 @@ namespace ocra {
         inline Eigen::VectorXd KDLTwistToEigenVectorXd(const KDL::Twist& kdlTwist)
         {
             Eigen::VectorXd tmpVec(6);
-            // Linear velocity - Angular Velocity
-            tmpVec << kdlTwist(0), kdlTwist(1), kdlTwist(2), kdlTwist(3), kdlTwist(4), kdlTwist(5);
+            //  Angular Velocity - Linear velocity
+            tmpVec << kdlTwist(3), kdlTwist(4), kdlTwist(5), kdlTwist(0), kdlTwist(1), kdlTwist(2);
             return tmpVec;
         }
-        
+
         /**
          Takes a six-dimentional Eigen Vector representing a twist and turns it into a KDL Twist.
 
@@ -34,8 +33,8 @@ namespace ocra {
         {
             if (eigVector.size() != 6)
                 throw std::runtime_error("[ocra::util::EigenVectorToKDLTwist] wrongly sized Eigen Vector");
-            KDL::Vector tmpVel = KDL::Vector(eigVector(0), eigVector(1), eigVector(2));
-            KDL::Vector tmpRot = KDL::Vector(eigVector(3), eigVector(4), eigVector(5));
+            KDL::Vector tmpRot = KDL::Vector(eigVector(0), eigVector(1), eigVector(2));
+            KDL::Vector tmpVel = KDL::Vector(eigVector(3), eigVector(4), eigVector(5));
             KDL::Twist tmpTwist = KDL::Twist(tmpVel, tmpRot);
             return tmpTwist;
         }
