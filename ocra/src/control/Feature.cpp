@@ -964,10 +964,10 @@ namespace ocra
       const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
 
       #ifdef OCRA_USES_KDL
-        pimpl->effort = util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL() - sdes.pimpl->controlFrame->getWrenchKDL());
+        pimpl->effort = pimpl->u.transpose() * util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL() - sdes.pimpl->controlFrame->getWrenchKDL());
       #else
 
-         pimpl->effort = pimpl->controlFrame->getWrench() - sdes.pimpl->controlFrame->getWrench();
+         pimpl->effort = pimpl->u.transpose() * (pimpl->controlFrame->getWrench() - sdes.pimpl->controlFrame->getWrench());
 
         //   // Twist error in the mobile frame
         //   const Eigen::Displacementd Herror = sdes.pimpl->controlFrame->getPosition().inverse() * pimpl->controlFrame->getPosition();
@@ -989,9 +989,9 @@ namespace ocra
   const VectorXd& DisplacementFeature::computeEffort() const
   {
       #ifdef OCRA_USES_KDL
-          pimpl->effort = util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL());
+          pimpl->effort = pimpl->u.transpose() * util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL());
       #else
-         pimpl->effort = pimpl->controlFrame->getWrench();
+         pimpl->effort = pimpl->u.transpose() * pimpl->controlFrame->getWrench();
         //   // Twist error in the mobile frame
         //   const Eigen::Wrenchd Werror = pimpl->controlFrame->getWrench();
           //
@@ -1011,9 +1011,9 @@ namespace ocra
     const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
 
     #ifdef OCRA_USES_KDL
-        pimpl->acceleration = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL() - sdes.pimpl->controlFrame->getAccelerationKDL());
+        pimpl->acceleration = pimpl->u.transpose() * util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL() - sdes.pimpl->controlFrame->getAccelerationKDL());
     #else
-        pimpl->acceleration = pimpl->controlFrame->getAcceleration() - sdes.pimpl->controlFrame->getAcceleration();
+        pimpl->acceleration = pimpl->u.transpose() * (pimpl->controlFrame->getAcceleration() - sdes.pimpl->controlFrame->getAcceleration());
     #endif
 
 
@@ -1023,9 +1023,9 @@ namespace ocra
   const VectorXd& DisplacementFeature::computeAcceleration() const
   {
       #ifdef OCRA_USES_KDL
-          pimpl->acceleration = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL());
+          pimpl->acceleration = pimpl->u.transpose() * util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL());
       #else
-          pimpl->acceleration = pimpl->controlFrame->getAcceleration();
+          pimpl->acceleration =pimpl->u.transpose() * pimpl->controlFrame->getAcceleration();
       #endif
 
     return pimpl->acceleration;
@@ -1045,7 +1045,7 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
         const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
         const Eigen::Displacementd::Rotation3D& Rdes = sdes.pimpl->controlFrame->getPosition().getRotation();
         pimpl->error.head(3) = Rdes.adjoint()*((Rdes.inverse() * R).log());
-        pimpl->error.tail(pimpl->dim - 3) = pimpl->controlFrame->getPosition().getTranslation() - sdes.pimpl->controlFrame->getPosition().getTranslation();
+        pimpl->error.tail(pimpl->dim - 3) = pimpl->u.transpose() * (pimpl->controlFrame->getPosition().getTranslation() - sdes.pimpl->controlFrame->getPosition().getTranslation());
     #endif
 
     return pimpl->error;
@@ -1054,17 +1054,20 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   const VectorXd& DisplacementFeature::computeError() const
   {
       #ifdef OCRA_USES_KDL
-
+          Eigen::Vector3d tmpLog;
+          util::quaternionLogFromKDLFrame(pimpl->controlFrame->getPositionKDL(), tmpLog);
+           pimpl->error.head(3) = tmpLog;
+          pimpl->error.tail(pimpl->dim - 3) = pimpl->u.transpose() * util::KDLVectorToEigenVector3d(pimpl->controlFrame->getPositionKDL().p);
       #else
-        // Displacement error in the mobile frame
-        //    const Eigen::Displacementd Herror = pimpl->controlFrame->getPosition().inverse();
-
-        // Project the opposite translational part on the controlled axes
-        const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-        const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
-        //    pimpl->error.tail(pimpl->dim - 3) = - u_in_mobileFrame.transpose() * Herror.getTranslation();
-        pimpl->error.tail(pimpl->dim - 3) = pimpl->controlFrame->getPosition().getTranslation();
-        pimpl->error.head(3) = R.log();
+        // // Displacement error in the mobile frame
+        // //    const Eigen::Displacementd Herror = pimpl->controlFrame->getPosition().inverse();
+        //
+        // // Project the opposite translational part on the controlled axes
+        // const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
+        // const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
+        // //    pimpl->error.tail(pimpl->dim - 3) = - u_in_mobileFrame.transpose() * Herror.getTranslation();
+        pimpl->error.tail(pimpl->dim - 3) = pimpl->u.transpose() *  pimpl->controlFrame->getPosition().getTranslation();
+        pimpl->error.head(3) = pimpl->controlFrame->getPosition().getRotation().log();
 
       #endif
     return pimpl->error;
@@ -1073,10 +1076,14 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   const VectorXd& DisplacementFeature::computeErrorDot(const Feature& featureDes) const
   {
     const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
+
     #ifdef OCRA_USES_KDL
+        pimpl->errorDot = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getVelocityKDL() - sdes.pimpl->controlFrame->getVelocityKDL());
+
+        pimpl->errorDot.tail(pimpl->dim - 3) = (pimpl->u.transpose() * pimpl->errorDot.tail(pimpl->dim - 3)).eval();
 
     #else
-        pimpl->errorDot.tail(pimpl->dim - 3) = pimpl->controlFrame->getVelocity().getLinearVelocity() - sdes.pimpl->controlFrame->getVelocity().getLinearVelocity();
+        pimpl->errorDot.tail(pimpl->dim - 3) = pimpl->u.transpose() * (pimpl->controlFrame->getVelocity().getLinearVelocity() - sdes.pimpl->controlFrame->getVelocity().getLinearVelocity());
 
         pimpl->errorDot.head(3) = pimpl->controlFrame->getVelocity().getAngularVelocity() - sdes.pimpl->controlFrame->getVelocity().getAngularVelocity();
     #endif
@@ -1088,9 +1095,12 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   const VectorXd& DisplacementFeature::computeErrorDot() const
   {
       #ifdef OCRA_USES_KDL
+          pimpl->errorDot = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getVelocityKDL());
+
+          pimpl->errorDot.tail(pimpl->dim - 3) = (pimpl->u.transpose() * pimpl->errorDot.tail(pimpl->dim - 3)).eval();
 
       #else
-          pimpl->errorDot.tail(pimpl->dim - 3) = pimpl->controlFrame->getVelocity().getLinearVelocity();
+          pimpl->errorDot.tail(pimpl->dim - 3) = pimpl->u.transpose() * pimpl->controlFrame->getVelocity().getLinearVelocity();
 
           pimpl->errorDot.head(3) = pimpl->controlFrame->getVelocity().getAngularVelocity();
       #endif
@@ -1160,7 +1170,10 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   {
       TaskState state;
       #ifdef OCRA_USES_KDL
-
+        state.setPositionKDL(pimpl->controlFrame->getPositionKDL());
+        state.setVelocityKDL(pimpl->controlFrame->getVelocityKDL());
+        state.setAccelerationKDL(pimpl->controlFrame->getAccelerationKDL());
+        state.setWrenchKDL(pimpl->controlFrame->getWrenchKDL());
       #else
           state.setPosition(pimpl->controlFrame->getPosition());
           state.setVelocity(pimpl->controlFrame->getVelocity());
@@ -1174,7 +1187,23 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   void DisplacementFeature::setState(const TaskState& newState)
   {
       #ifdef OCRA_USES_KDL
-
+      try {
+          TargetFrame::Ptr targetFrame = std::dynamic_pointer_cast<TargetFrame>(pimpl->controlFrame);
+          if(newState.hasPositionKDL()) {
+                targetFrame->setPositionKDL(newState.getPositionKDL());
+            }
+            if(newState.hasVelocityKDL()) {
+                targetFrame->setVelocityKDL(newState.getVelocityKDL());
+            }
+            if(newState.hasAccelerationKDL()) {
+                targetFrame->setAccelerationKDL(newState.getAccelerationKDL());
+            }
+            if(newState.hasWrenchKDL()) {
+                targetFrame->setWrenchKDL(newState.getWrenchKDL());
+            }
+      } catch (int errCode) {
+          std::cout << "You cannot set the state of this feature because it is not a desired feature. It must be constructed with a TargetFrame." << errCode << std::endl;
+      }
       #else
           try {
               TargetFrame::Ptr targetFrame = std::dynamic_pointer_cast<TargetFrame>(pimpl->controlFrame);
