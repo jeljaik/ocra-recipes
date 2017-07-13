@@ -940,10 +940,14 @@ namespace ocra
 
   const MatrixXd& DisplacementFeature::getSpaceTransform() const
   {
-    pimpl->spaceTransform.topRows(3).setIdentity();
+      pimpl->spaceTransform.topRows(3).setIdentity();
+      #ifdef OCRA_USES_KDL
+          pimpl->spaceTransform.bottomRows(3) = pimpl->u.transpose() * util::getKDLFrameAdjoint(pimpl->controlFrame->getPositionKDL());
+      #else
+          const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
+          pimpl->spaceTransform.bottomRows(3) = pimpl->u.transpose() * R.adjoint();
+      #endif
 
-    const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-    pimpl->spaceTransform.bottomRows(3) = pimpl->u.transpose() * R.adjoint();
 
     return pimpl->spaceTransform;
   }
