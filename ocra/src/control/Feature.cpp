@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+// TODO: Clean up old code to convert frame of references to the link frame rather than in the world frame. Note: all frames should be expressed in the world frame.
+
 using namespace Eigen;
 
 namespace ocra
@@ -959,32 +961,47 @@ namespace ocra
 
   const VectorXd& DisplacementFeature::computeEffort(const Feature& featureDes) const
   {
-    const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
+      const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
 
-    // Twist error in the mobile frame
-    const Eigen::Displacementd Herror = sdes.pimpl->controlFrame->getPosition().inverse() * pimpl->controlFrame->getPosition();
-    const Eigen::Wrenchd Werror = pimpl->controlFrame->getWrench() - Herror.adjointTr(sdes.pimpl->controlFrame->getWrench());
+      #ifdef OCRA_USES_KDL
+        pimpl->effort = util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL() - sdes.pimpl->controlFrame->getWrenchKDL());
+      #else
 
-    // project the translational part on the controlled axes
-    const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-    const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
-    pimpl->effort.tail(pimpl->dim - 3) = u_in_mobileFrame.transpose() * Werror.getForce();
+         pimpl->effort = pimpl->controlFrame->getWrench() - sdes.pimpl->controlFrame->getWrench();
 
-    pimpl->effort.head(3) = Werror.getTorque();
+        //   // Twist error in the mobile frame
+        //   const Eigen::Displacementd Herror = sdes.pimpl->controlFrame->getPosition().inverse() * pimpl->controlFrame->getPosition();
+        //   const Eigen::Wrenchd Werror = pimpl->controlFrame->getWrench() - Herror.adjointTr(sdes.pimpl->controlFrame->getWrench());
+          //
+        //   // project the translational part on the controlled axes
+        //   const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
+        //   const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
+        //   pimpl->effort.tail(pimpl->dim - 3) = u_in_mobileFrame.transpose() * Werror.getForce();
+          //
+        //   pimpl->effort.head(3) = Werror.getTorque();
+
+      #endif
+
 
     return pimpl->effort;
   }
 
   const VectorXd& DisplacementFeature::computeEffort() const
   {
-    // Twist error in the mobile frame
-    const Eigen::Wrenchd Werror = pimpl->controlFrame->getWrench();
+      #ifdef OCRA_USES_KDL
+          pimpl->effort = util::KDLWrenchToEigenVectorXd(pimpl->controlFrame->getWrenchKDL());
+      #else
+         pimpl->effort = pimpl->controlFrame->getWrench();
+        //   // Twist error in the mobile frame
+        //   const Eigen::Wrenchd Werror = pimpl->controlFrame->getWrench();
+          //
+        //   // project the translational part on the controlled axes
+        //   const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
+        //   const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
+        //   pimpl->effort.tail(pimpl->dim - 3) = u_in_mobileFrame.transpose() * Werror.getForce();
+        //   pimpl->effort.head(3) = Werror.getTorque();
+      #endif
 
-    // project the translational part on the controlled axes
-    const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-    const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
-    pimpl->effort.tail(pimpl->dim - 3) = u_in_mobileFrame.transpose() * Werror.getForce();
-    pimpl->effort.head(3) = Werror.getTorque();
 
     return pimpl->effort;
   }
