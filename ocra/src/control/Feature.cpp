@@ -794,10 +794,10 @@ namespace ocra
         const Eigen::Matrix3d& R = rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
         const Eigen::Matrix3d& Rdes = rotationMatrixFromKDLFrame(sdes.pimpl->controlFrame->getPositionKDL());
         const Eigen::Matrix3d Rdes_in_r = R.inverse() * Rdes;
-        
+
         pimpl->effort = KDLVectorToEigenVector3d(pimpl->controlFrame->getWrenchKDL().torque) - Rdes_in_r * KDLVectorToEigenVector3d(sdes.pimpl->controlFrame->getWrenchKDL().torque);
-        
-        return pimpl->effort;        
+
+        return pimpl->effort;
     }
 
     const Eigen::VectorXd& OrientationFeature::computeEffortKDL() const
@@ -805,7 +805,7 @@ namespace ocra
         pimpl->effort = ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getWrenchKDL().torque);
         return pimpl->effort;
     }
-    
+
     const Eigen::VectorXd& OrientationFeature::computeAccelerationKDL(const Feature& featureDes) const
     {
         using namespace ocra::util;
@@ -813,7 +813,7 @@ namespace ocra
         pimpl->acceleration = KDLVectorToEigenVector3d(pimpl->controlFrame->getAccelerationKDL().rot - sdes.pimpl->controlFrame->getAccelerationKDL().rot);
         return pimpl->acceleration;
     }
-    
+
     const Eigen::VectorXd& OrientationFeature::computeAccelerationKDL() const
     {
         pimpl->acceleration = ocra::util::KDLVectorToEigenVector3d(pimpl->controlFrame->getAccelerationKDL().rot);
@@ -823,7 +823,7 @@ namespace ocra
     {
         //TODO: Implement. What do we do about log?
         const OrientationFeature& sdes = dynamic_cast<const OrientationFeature&>(featureDes);
-        
+
         using namespace ocra::util;
         const Eigen::Matrix3d& R = rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
         const Eigen::Matrix3d& Rdes = rotationMatrixFromKDLFrame(sdes.pimpl->controlFrame->getPositionKDL());
@@ -853,7 +853,7 @@ namespace ocra
         state.setVelocityKDL(pimpl->controlFrame->getVelocityKDL());
         state.setAccelerationKDL(pimpl->controlFrame->getAccelerationKDL());
         state.setWrenchKDL(pimpl->controlFrame->getWrenchKDL());
-        
+
         return state;
 
     }
@@ -1014,25 +1014,30 @@ namespace ocra
     return pimpl->acceleration;
   }
 
-  const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) const
-  {
+const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) const
+{
     const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
+    #ifdef OCRA_USES_KDL
 
-    // Displacement error in the mobile frame
-//    const Eigen::Displacementd Herror = pimpl->controlFrame->getPosition().inverse() * sdes.pimpl->controlFrame->getPosition();
 
-    // Project the opposite translational part on the controlled axes
-    const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-//    const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
-//    pimpl->error.tail(pimpl->dim - 3) = - u_in_mobileFrame.transpose() * Herror.getTranslation();
+    #else
+        // Displacement error in the mobile frame
+        //    const Eigen::Displacementd Herror = pimpl->controlFrame->getPosition().inverse() * sdes.pimpl->controlFrame->getPosition();
 
-    const Eigen::Displacementd::Rotation3D& Rdes = sdes.pimpl->controlFrame->getPosition().getRotation();
-//    pimpl->error.head(3) = (Rdes.inverse() * R).log();
-    pimpl->error.head(3) = Rdes.adjoint()*((Rdes.inverse() * R).log());
+        // Project the opposite translational part on the controlled axes
+        const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
+        //    const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
+        //    pimpl->error.tail(pimpl->dim - 3) = - u_in_mobileFrame.transpose() * Herror.getTranslation();
 
-    pimpl->error.tail(pimpl->dim - 3) = pimpl->controlFrame->getPosition().getTranslation() - sdes.pimpl->controlFrame->getPosition().getTranslation();
+        const Eigen::Displacementd::Rotation3D& Rdes = sdes.pimpl->controlFrame->getPosition().getRotation();
+        //    pimpl->error.head(3) = (Rdes.inverse() * R).log();
+        pimpl->error.head(3) = Rdes.adjoint()*((Rdes.inverse() * R).log());
+
+        pimpl->error.tail(pimpl->dim - 3) = pimpl->controlFrame->getPosition().getTranslation() - sdes.pimpl->controlFrame->getPosition().getTranslation();
+    #endif
+
     return pimpl->error;
-  }
+}
 
   const VectorXd& DisplacementFeature::computeError() const
   {
