@@ -1011,7 +1011,7 @@ namespace ocra
     const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
 
     #ifdef OCRA_USES_KDL
-
+        pimpl->acceleration = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL() - sdes.pimpl->controlFrame->getAccelerationKDL());
     #else
         pimpl->acceleration = pimpl->controlFrame->getAcceleration() - sdes.pimpl->controlFrame->getAcceleration();
     #endif
@@ -1023,7 +1023,7 @@ namespace ocra
   const VectorXd& DisplacementFeature::computeAcceleration() const
   {
       #ifdef OCRA_USES_KDL
-
+          pimpl->acceleration = util::KDLTwistToEigenVectorXd(pimpl->controlFrame->getAccelerationKDL());
       #else
           pimpl->acceleration = pimpl->controlFrame->getAcceleration();
       #endif
