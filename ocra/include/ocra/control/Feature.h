@@ -124,49 +124,7 @@ namespace ocra
          @return 3-dimensional effort.
          */
         const Eigen::VectorXd& computeEffort(const Feature& featureDes) const;
-        const Eigen::VectorXd& computeAcceleration(const Feature& featureDes) const;
-        const Eigen::VectorXd& computeError(const Feature& featureDes) const;
-        const Eigen::VectorXd& computeErrorDot(const Feature& featureDes) const;
-        const Eigen::MatrixXd& computeJacobian(const Feature& featureDes) const;
-        const Eigen::MatrixXd& computeProjectedMass(const Feature& featureDes) const;
-        const Eigen::MatrixXd& computeProjectedMassInverse(const Feature& featureDes) const;
-
-        const Eigen::VectorXd& computeEffort() const;
-        const Eigen::VectorXd& computeAcceleration() const;
-        const Eigen::VectorXd& computeError() const;
-        const Eigen::VectorXd& computeErrorDot() const;
-        const Eigen::MatrixXd& computeJacobian() const;
-        const Eigen::MatrixXd& computeProjectedMass() const;
-        const Eigen::MatrixXd& computeProjectedMassInverse() const;
-
-        TaskState getState() const;
-        void setState(const TaskState& newState);
-
-        // KDL-MIGRATION OF POSITIONFEATURE
-#ifdef OCRA_USES_KDL
-        /**
-         Retrieves the transformation from the control frame space to the output space.
-
-         @return Transformation matrix.
-         */
-        const Eigen::MatrixXd& getSpaceTransformKDL() const;
-
-        /**
-         Difference between the actual force acting on this frame and the desired.
-
-         @param featureDes Desired state of the feature.
-         @return 3-dimensional effort.
-         */
-        const Eigen::VectorXd& computeEffortKDL(const Feature& featureDes) const;
-
-        /**
-         Pretty much retrieves the force at the origin of the control frame projected
-         on the controlled axes.
-
-         @return 3-dimensional effort.
-         */
-        const Eigen::VectorXd& computeEffortKDL() const;
-
+        
         /**
          Given a desired position feature, this method computes the difference between
          the actual frame's linear acceleration and the desired frame's linear acceleration,
@@ -175,15 +133,8 @@ namespace ocra
          @param featureDes Desired position feature.
          @return Acceleration error in the desired axes.
          */
-        const Eigen::VectorXd& computeAccelerationKDL(const Feature& featureDes) const;
-
-        /**
-         Retrieves the linear acceleration of the current frame projected on the controlled axes.
-
-         @return Frame's linear acceleration.
-         */
-        const Eigen::VectorXd& computeAccelerationKDL() const;
-
+        const Eigen::VectorXd& computeAcceleration(const Feature& featureDes) const;
+        
         /**
          The error of a position feature, given a desired position, is simply the difference between
          the linear positions of the current and desired frames.
@@ -191,14 +142,8 @@ namespace ocra
          @param featureDes Desired position feature.
          @return Position feature error.
          */
-        const Eigen::VectorXd& computeErrorKDL(const Feature& featureDes) const;
-
-        /**
-         Linear position of the current frame projected on the controlled axes.
-         @return Frame's linear position.
-         */
-        const Eigen::VectorXd& computeErrorKDL() const;
-
+        const Eigen::VectorXd& computeError(const Feature& featureDes) const;
+        
         /**
          Computes the difference between the current frame's linear velocity and the desired linear
          velocity of the frame, projected on the controlled axes.
@@ -206,30 +151,61 @@ namespace ocra
          @param featureDes Desired position feature.
          @return Velocity error of the frame.
          */
-        const Eigen::VectorXd& computeErrorDotKDL(const Feature& featureDes) const;
+        const Eigen::VectorXd& computeErrorDot(const Feature& featureDes) const;
+        
+        const Eigen::MatrixXd& computeJacobian(const Feature& featureDes) const;
+        
+        const Eigen::MatrixXd& computeProjectedMass(const Feature& featureDes) const;
+        
+        const Eigen::MatrixXd& computeProjectedMassInverse(const Feature& featureDes) const;
+        
+        /**
+         Pretty much retrieves the force at the origin of the control frame projected
+         on the controlled axes.
 
+         @return 3-dimensional effort.
+         */
+        const Eigen::VectorXd& computeEffort() const;
+        
+        /**
+         Retrieves the linear acceleration of the current frame projected on the controlled axes.
+
+         @return Frame's linear acceleration.
+         */
+        const Eigen::VectorXd& computeAcceleration() const;
+        
+        /**
+         Linear position of the current frame projected on the controlled axes.
+         @return Frame's linear position.
+         */
+        const Eigen::VectorXd& computeError() const;
+        
         /**
          Linear velocity of the current frame projected on the controlled axes.
 
          @return Linear velocity error.
          */
-        const Eigen::VectorXd& computeErrorDotKDL() const;
-
+        const Eigen::VectorXd& computeErrorDot() const;
+        
+        const Eigen::MatrixXd& computeJacobian() const;
+        
+        const Eigen::MatrixXd& computeProjectedMass() const;
+        
+        const Eigen::MatrixXd& computeProjectedMassInverse() const;
+        
         /**
          Returns current state of the frame, composed by its position and velocity.
 
          @return Current frame's state.
          */
-        TaskState getStateKDL() const;
-
+        TaskState getState() const;
+        
         /**
          Sets a new state to this position feature.
 
          @param newState Desired new state.
          */
-        void setStateKDL(const TaskState& newState);
-
-#endif // OCRA_USES_KDL
+        void setState(const TaskState& newState);
 
     private:
         struct Pimpl;
@@ -285,11 +261,12 @@ namespace ocra
 
     // --- ORIENTATION --------------------------------------------
 
-    //! Used to build orientation tasks.
-    /*!
-     OrientationFeature instances consider only the orientation of the associated control frame.
-     The error between two orientation features is the log of Rdes.inverse() * R, where R is
-     the orientation of the orientation frame and Rdes is the desired orientation.
+    /**
+     * @class OrientationFeature
+     * @brief Used to build orientation tasks.
+     * @details OrientationFeature instances consider only the orientation of the associated control frame.
+     * The error between two orientation features is the log of Rdes.inverse() * R, where R is
+     * the orientation of the orientation frame and Rdes is the desired orientation.
      */
     class OrientationFeature : public Feature
     {
@@ -303,7 +280,7 @@ namespace ocra
         const Eigen::MatrixXd& getSpaceTransform() const;
         /**
          Given a desired orientation feature, it computes the effort as the difference between the torque at the frame for the current orientation and the one needed for the desired orientation.
-         
+
          @param featureDes Desired orientation feature.
          @return 3-dimensional effort on each axis of rotation.
          */
@@ -311,15 +288,15 @@ namespace ocra
 
         /**
          Given a desired orientation feature, it computes the angular acceleration that the associated control frame need to go from the current orientation to the desired one.
-         
+
          @param featureDes Desired orientation feature.
          @return Angular acceleration needed.
          */
         const Eigen::VectorXd& computeAcceleration(const Feature& featureDes) const;
-        
+
         /**
          Given a desired orientation feature, returns the logarithmic error in the orientation.
-         
+
          @param featureDes Desired orientation feature.
          @return Orientation error (logarithm)
          */
@@ -327,61 +304,61 @@ namespace ocra
 
         /**
          Computes the angular velocity needed to go from the current configuration to the desired one.
-         
+
          @param featureDes Desired orientation feature.
          @return Angular velocity error.
          */
         const Eigen::VectorXd& computeErrorDot(const Feature& featureDes) const;
-        
+
         const Eigen::MatrixXd& computeJacobian(const Feature& featureDes) const;
-        
+
         const Eigen::MatrixXd& computeProjectedMass(const Feature& featureDes) const;
-        
+
         const Eigen::MatrixXd& computeProjectedMassInverse(const Feature& featureDes) const;
 
         /**
          Returns the torque at the current control frame.
-         
+
          @return Current effort.
          */
         const Eigen::VectorXd& computeEffort() const;
-        
+
         /**
          Pretty much the current angular acceleration associated to this control frame.
-         
+
          @return Angular acceleration of the control frame
          */
         const Eigen::VectorXd& computeAcceleration() const;
-        
+
         /**
          Returns the logarithmic error in the orientation
-         
+
          @return Orientation error.
          */
         const Eigen::VectorXd& computeError() const;
-        
+
         /**
          Pretty much returns the angular velocity of the current control frame.
-         
+
          @return Angular velocity.
          */
         const Eigen::VectorXd& computeErrorDot() const;
-        
+
         const Eigen::MatrixXd& computeJacobian() const;
-        
+
         const Eigen::MatrixXd& computeProjectedMass() const;
-        
+
         const Eigen::MatrixXd& computeProjectedMassInverse() const;
         /**
          Retrieves the current state of the associated control frame. The state is composed by its position, velocity, acceleration and wrench.
-         
+
          @return State of the feature.
          */
         TaskState getState() const;
-        
+
         /**
          Sets the state of the feature, i.e. position, velocity, acceleration and wrench.
-         
+
          @param newState New state to be set.
          */
         void setState(const TaskState& newState);
