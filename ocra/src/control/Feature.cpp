@@ -827,7 +827,7 @@ namespace ocra
         using namespace ocra::util;
 //        const Eigen::Matrix3d& R = rotationMatrixFromKDLFrame(pimpl->controlFrame->getPositionKDL());
         const Eigen::Matrix3d& Rdes = rotationMatrixFromKDLFrame(sdes.pimpl->controlFrame->getPositionKDL());
-        
+
         const KDL::Frame& frame = pimpl->controlFrame->getPositionKDL();
         const KDL::Frame& frameDes = sdes.pimpl->controlFrame->getPositionKDL();
         const KDL::Frame tmp = frameDes.Inverse()*frame;
@@ -845,7 +845,7 @@ namespace ocra
         pimpl->error = tmpLog;
         return pimpl->error;
     }
-    
+
     const Eigen::VectorXd& OrientationFeature::computeErrorDotKDL(const Feature& featureDes) const
     {
         const OrientationFeature& sdes = dynamic_cast<const OrientationFeature&>(featureDes);
@@ -1030,21 +1030,15 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
 {
     const DisplacementFeature& sdes = dynamic_cast<const DisplacementFeature&>(featureDes);
     #ifdef OCRA_USES_KDL
-
-
+        const KDL::Frame tmp = sdes.pimpl->controlFrame->getPositionKDL().Inverse()*pimpl->controlFrame->getPositionKDL();
+        Eigen::Vector3d tmpLog;
+        util::quaternionLogFromKDLFrame(tmp, tmpLog);
+        pimpl->error.head(3) = util::rotationMatrixFromKDLFrame(sdes.pimpl->controlFrame->getPositionKDL())*tmpLog;
+        pimpl->error.tail(pimpl->dim - 3) = pimpl->u.transpose() * util::KDLVectorToEigenVector3d(pimpl->controlFrame->getPositionKDL().p - sdes.pimpl->controlFrame->getPositionKDL().p);
     #else
-        // Displacement error in the mobile frame
-        //    const Eigen::Displacementd Herror = pimpl->controlFrame->getPosition().inverse() * sdes.pimpl->controlFrame->getPosition();
-
-        // Project the opposite translational part on the controlled axes
         const Eigen::Displacementd::Rotation3D& R = pimpl->controlFrame->getPosition().getRotation();
-        //    const MatrixXd u_in_mobileFrame = R.inverse().adjoint() * pimpl->u;
-        //    pimpl->error.tail(pimpl->dim - 3) = - u_in_mobileFrame.transpose() * Herror.getTranslation();
-
         const Eigen::Displacementd::Rotation3D& Rdes = sdes.pimpl->controlFrame->getPosition().getRotation();
-        //    pimpl->error.head(3) = (Rdes.inverse() * R).log();
         pimpl->error.head(3) = Rdes.adjoint()*((Rdes.inverse() * R).log());
-
         pimpl->error.tail(pimpl->dim - 3) = pimpl->controlFrame->getPosition().getTranslation() - sdes.pimpl->controlFrame->getPosition().getTranslation();
     #endif
 
