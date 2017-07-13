@@ -153,7 +153,7 @@ namespace ocra {
             KDL::Frame copyInput = input;
             Eigen::VectorXd H_vec(16);
             copyInput.Make4x4(H_vec.data());
-            output = Eigen::Map<Eigen::MatrixXd>(H.data(),4,4);
+            output = Eigen::Map<Eigen::MatrixXd>(H_vec.data(),4,4);
             output.transposeInPlace();
             return output;
         }
@@ -213,6 +213,33 @@ namespace ocra {
             output << inputVector(0), inputVector(1), inputVector(2);
             return output;
         }
+        
+        /**
+         Implements the capitalized logarithmic map, which directly provides the anlge phi and axis u of rotation in cartesian 3D space, in the form u*phi. It returns only the vector coefficients of the resulting quaternion (to comply with EigenLGSM).
+         
+         @param[in] q Input quaternion. Use a fixed-sized Eigen vector, e.g. Eigen::Vector4d.
+         @param[out] log Three-dimensional logarithm of the input quaternion. Use a fixed-size Eigen vector, e.g. Eigen::Vector3d.
+         @note Modify this method for it to take a KDL frame as input, instead of the quaternion. Or write another one with this functionality
+         */
+        template <typename Derived1, typename Derived2>
+        void quaternionLog(const Eigen::MatrixBase<Derived1>& q, Eigen::MatrixBase<Derived2>& log) {
+            Eigen::Vector4d tmp;
+            // As done in http://www.iri.upc.edu/people/jsola/JoanSola/objectes/notes/kinematics.pdf
+            // Page 21: The logarithmic maps
+            double qv_norm = q.head(3).norm();
+            double qw = q(3);
+            double phi = 2*std::atan2(qv_norm, qw);
+            tmp = (phi/qv_norm)*q;
+            log = tmp.head(3);
+        }
+        
+        template <typename Derived>
+        void quaternionLogFromKDLFrame(const KDL::Frame &kdl_frame, Eigen::MatrixBase<Derived>& log) {
+            Eigen::Vector4d quat;
+            kdl_frame.M.GetQuaternion(quat(0), quat(1), quat(2), quat(3));
+            quaternionLog(quat, log);
+        }
+
         
     } // namespace util
 } // namespace ocra
