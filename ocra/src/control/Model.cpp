@@ -289,7 +289,6 @@ namespace ocra
     doInvalidate();
     doSetJointPositions(getInternalConfigurationVariable().getValue());
     doSetJointVelocities(getInternalVelocityVariable().getValue());
-    //TODO: Change the following lines to use KDL instead
     if (!_fixedRoot)
       doSetFreeFlyerVelocity(Twistd(getRootVelocityVariable().getValue()));
   }

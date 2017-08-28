@@ -34,7 +34,36 @@ public:
     virtual bool write(yarp::os::ConnectionWriter& connection);
     virtual bool read(yarp::os::ConnectionReader& connection);
 
-    // friend std::ostream& operator<<(std::ostream &out, const RobotState& state);
+    friend std::ostream& operator<<(std::ostream &out, const RobotState& state)
+    {
+//         std::cout << "q \t | \t qd" << std::endl;
+//         for(auto i=0; i<state.q.size(); ++i)
+//         {
+//             out << state.q(i) << "\t | \t" << state.qd(i) << std::endl;
+//         }
+// 
+//         out << "x" << " " << "y" << " " << "z" << " " << "qx" << " " << "qy" << " " << "qz" << " " << "qw" << std::endl;
+//         out << state.H_root.x() << " ";
+//         out << state.H_root.y() << " ";
+//         out << state.H_root.z() << " ";
+//         out << state.H_root.qx() << " ";
+//         out << state.H_root.qy() << " ";
+//         out << state.H_root.qz() << " ";
+//         out << state.H_root.qw() << std::endl;
+        out << "Homogeneous matrix LGSM: \n" << state.H_root.toHomogeneousMatrix() << std::endl;
+        out << "Homogeneous matrix KDL \n" << state.H_rootKDL << std::endl;
+        out << "rx" << " " << "ry" << " " << "rz" << " " << "rx" << " " << "ry" << " " << "rz" << std::endl;
+        // out << state.T_root.rx() << " ";
+        // out << state.T_root.ry() << " ";
+        // out << state.T_root.rz() << " ";
+        // out << state.T_root.vx() << " ";
+        // out << state.T_root.vy() << " ";
+        // out << state.T_root.vz() << std::endl;
+        out << "Root twist LGSM \n" << state.T_root.transpose() << std::endl;
+        out << "Root twist KDL \n" << state.T_rootKDL << std::endl;
+
+        return out;
+    }
 
 
 public:

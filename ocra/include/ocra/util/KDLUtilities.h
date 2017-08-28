@@ -268,6 +268,24 @@ namespace ocra {
             kdl_frame.M.GetQuaternion(quat(0), quat(1), quat(2), quat(3));
             quaternionLog(quat, log);
         }
+        
+        inline bool eigenVectorToKDLFrame(const Eigen::VectorXd &vec, KDL::Frame &kdlframe)
+        {
+            // Get quaternion from wbi frame as a vector of doubles
+            double wbiQuat[4];
+            wbiQuat[0] = vec(4);
+            wbiQuat[1] = vec(5);
+            wbiQuat[2] = vec(6);
+            wbiQuat[3] = vec(3); // w in vec is the last coefficient
+            // Use the quaternion (array of doubles) to build a KDL Rotation. In KDL and WBI the quaternion representation is the same
+            // the order of the quaternion coefficients to pass is: x, y, z, w
+            KDL::Rotation kdlRot = KDL::Rotation::Quaternion(wbiQuat[0], wbiQuat[1], wbiQuat[2], wbiQuat[3]);
+            // Build a KDL::Vector from the position vector of vec
+            KDL::Vector kdlVec = KDL::Vector(vec(0), vec(1), vec(2));    
+            kdlframe = KDL::Frame(kdlRot, kdlVec);
+            return true;
+        }
+        
 
 
     } // namespace util

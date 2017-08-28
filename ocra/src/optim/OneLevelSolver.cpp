@@ -587,7 +587,7 @@ void OneLevelSolverWithQPOASES::doSolve()
     _result.info = toOcraRetValue(ret);
 }
 
-#endif USING_QPOASES
+#endif 
 
 
 

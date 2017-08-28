@@ -26,6 +26,7 @@ bool ControllerServer::initialize()
     firstRun = true;
 
     rState = RobotState(model->nbDofs());
+    rState.T_root = Eigen::Twistd::Zero();
     if(model)
     {
         // Set the solver.
@@ -119,6 +120,7 @@ void ControllerServer::computeTorques(Eigen::VectorXd& torques)
     updateModelKDL();
 #endif
     controller->computeOutput(torques);
+    std::cout << "Computed torques: \n" << torques.transpose() << std::endl;
 }
 
 void ControllerServer::updateModel()
@@ -129,7 +131,8 @@ void ControllerServer::updateModel()
     }else{
         model->setState(rState.H_root, rState.q, rState.T_root, rState.qd);
     }
-    if (!statesPort.write(rState)) {
+    std::cout << "LGSM state: \n" << rState << std::endl;
+    if (!statesPort.write( rState)) {
         OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
     }
 }
@@ -142,6 +145,7 @@ void ControllerServer::updateModelKDL()
     } else {
         model->setStateKDL(rState.H_rootKDL, rState.q, rState.T_rootKDL, rState.qd);
     }
+    std::cout << "KDL State: \n" << rState << std::endl;
     if (!statesPort.write(rState)) {
         OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
     }

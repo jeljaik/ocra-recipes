@@ -212,6 +212,9 @@ namespace ocra
     KDL::Vector linVelKDL = pimpl->controlFrame->getVelocityKDL().vel - sdes.pimpl->controlFrame->getVelocityKDL().vel;
     Eigen::Vector3d linVel = ocra::util::KDLVectorToEigenVector3d(linVelKDL);
     pimpl->errorDot = pimpl->u.transpose() * linVel;
+    std::cout << "Desired velocity: " << sdes.pimpl->controlFrame->getVelocityKDL().vel << std::endl;
+    std::cout << "Current velocity: " << pimpl->controlFrame->getVelocityKDL().vel << std::endl;
+
 #endif
     return pimpl->errorDot;
   }

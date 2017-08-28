@@ -771,10 +771,11 @@ void Task::updateAccelerationTask()
 
     const VectorXd  accDes = - ( getErrorDdot() + Kp * getError() + Kd * getErrorDot() );
 
-    // std::cout << "\n----\nname = " << getName() << std::endl;
-    // std::cout << "getError() = " << getError().transpose() << std::endl;
-    // std::cout << "getErrorDot() = " << getErrorDot().transpose() << std::endl;
-    // std::cout << "getErrorDdot() = " << getErrorDdot().transpose() << std::endl;
+    std::cout << "\n----\nname = " << getName() << std::endl;
+    std::cout << "getError() = " << getError().transpose() << std::endl;
+    std::cout << "getErrorDot() = " << getErrorDot().transpose() << std::endl;
+    std::cout << "getErrorDdot() = " << getErrorDdot().transpose() << std::endl;
+    std::cout << "accDes = " << accDes.transpose() << std::endl;
 
     if (pimpl->useReducedProblem)
     {
