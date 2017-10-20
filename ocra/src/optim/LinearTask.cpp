@@ -3,7 +3,6 @@
 
 #include <stdexcept>
 
-//using namespace xde;        //TODO: we comment that, we should not!!!!
 
 namespace ocra 
 {

@@ -97,14 +97,14 @@ namespace ocra {
          */
         template <typename Derived>
         KDL::Twist operator+(const KDL::Twist &kdlTwist, const Eigen::DenseBase<Derived> &eigVector) {
-            KDL::Twist kdlTwist1;
-            kdlTwist1(0) = kdlTwist(0) + eigVector(0);
-            kdlTwist1(1) = kdlTwist(1) + eigVector(1);
-            kdlTwist1(2) = kdlTwist(2) + eigVector(2);
-            kdlTwist1(3) = kdlTwist(3) + eigVector(3);
-            kdlTwist1(4) = kdlTwist(4) + eigVector(4);
-            kdlTwist1(5) = kdlTwist(5) + eigVector(5);
-            return kdlTwist1;
+            KDL::Twist kdlTmp; kdlTmp.Zero(); 
+            kdlTmp(0) = eigVector(0);
+            kdlTmp(1) = eigVector(1);
+            kdlTmp(2) = eigVector(2);
+            kdlTmp(3) = eigVector(3);
+            kdlTmp(4) = eigVector(4);
+            kdlTmp(5) = eigVector(5);
+            return kdlTmp + kdlTwist;
         }
 
         /**
