@@ -316,7 +316,7 @@ namespace ocra
     else if(pimpl->mode == TASK_AS_OBJECTIVE)
       deactivate();
 
-//     doActivateAsConstraint();
+    doActivateAsConstraint();
     if(pimpl->contactActive)
       doActivateContactMode();
 
@@ -332,7 +332,7 @@ namespace ocra
       doDeactivateAsObjective();
     else if(pimpl->mode == TASK_AS_CONSTRAINT) {
         OCRA_WARNING("Deactivating foot contacts");
-//       doDeactivateAsConstraint();
+      doDeactivateAsConstraint();
       if(pimpl->contactActive)
         doDeactivateContactMode();
     }
@@ -771,11 +771,13 @@ void Task::updateAccelerationTask()
 
     const VectorXd  accDes = - ( getErrorDdot() + Kp * getError() + Kd * getErrorDot() );
 
-    std::cout << "\n----\nname = " << getName() << std::endl;
-    std::cout << "getError() = " << getError().transpose() << std::endl;
-    std::cout << "getErrorDot() = " << getErrorDot().transpose() << std::endl;
-    std::cout << "getErrorDdot() = " << getErrorDdot().transpose() << std::endl;
-    std::cout << "accDes = " << accDes.transpose() << std::endl;
+//     if (!getName().compare("FullPosture"))
+//         std::cout << "\n--- DESIRED FEATURE --- \n" << this->getFeature() << std::endl;
+//     std::cout << "\n----\nname = " << getName() << std::endl;
+//     std::cout << "getError() = " << getError().transpose() << std::endl;
+//     std::cout << "getErrorDot() = " << getErrorDot().transpose() << std::endl;
+//     std::cout << "getErrorDdot() = " << getErrorDdot().transpose() << std::endl;
+//     std::cout << "accDes = " << accDes.transpose() << std::endl;
 
     if (pimpl->useReducedProblem)
     {

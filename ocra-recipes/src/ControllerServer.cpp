@@ -120,7 +120,6 @@ void ControllerServer::computeTorques(Eigen::VectorXd& torques)
     updateModelKDL();
 #endif
     controller->computeOutput(torques);
-    std::cout << "Computed torques: \n" << torques.transpose() << std::endl;
 }
 
 void ControllerServer::updateModel()
@@ -145,7 +144,6 @@ void ControllerServer::updateModelKDL()
     } else {
         model->setStateKDL(rState.H_rootKDL, rState.q, rState.T_rootKDL, rState.qd);
     }
-    std::cout << "KDL State: \n" << rState << std::endl;
     if (!statesPort.write(rState)) {
         OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
     }

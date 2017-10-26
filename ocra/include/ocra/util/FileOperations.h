@@ -18,6 +18,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <yarp/os/Time.h>
 
 namespace ocra
 {
@@ -111,6 +112,16 @@ namespace ocra
       else
         return writeInFile(s, m, precision, ", ", ";\n", "[", "]", "[", "];");
     }
+    
+    inline void writeToFile(const Eigen::VectorXd& vec, std::string& home) 
+    {
+        static double timeInit = yarp::os::Time::now();
+        double timeNow = yarp::os::Time::now() - timeInit;
+        Eigen::VectorXd tmp(vec.rows()+1);
+        tmp << timeNow, vec;
+        ocra::utils::writeInFile(tmp, std::string(home + ".txt"), true);
+    }
+
   }
 
 
