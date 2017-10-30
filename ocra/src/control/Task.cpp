@@ -61,6 +61,7 @@ namespace ocra
     BaseVariable fcVar;
     bool taskHasBeenInitialized;
     LessThanZeroConstraintPtr<LinearizedCoulombFunction> frictionConstraint; // if contact task
+    GreaterThanZeroConstraintPtr<PositiveNormalContactForces> positiveNormalForces;  // if contact task/constraint
     bool contactForceConstraintHasBeenSavedInSolver;
     bool contactPointHasBeenSavedInModel;
     bool frictionConstraintIsRegisteredInConstraint;
@@ -115,12 +116,18 @@ namespace ocra
 //            registerFrictionConstraint = true;
             frictionConstraint.set(  new LinearizedCoulombFunction(fcVar, 1., 6, 0.) );
             ContactForceConstraint.set( new LinearFunction( fcVar, Eigen::MatrixXd::Identity(3,3), VectorXd::Zero(3) ) );
+#ifdef ADD_POSITIVE_NORMALS_CONSTRAINT
+            positiveNormalForces.set( new PositiveNormalContactForces( fcVar ) );
+#endif 
         }
         else
         {
 //            registerFrictionConstraint = false;
             frictionConstraint.set(NULL);
             ContactForceConstraint.set(NULL);
+#ifdef ADD_POSITIVE_NORMALS_CONSTRAINT
+            positiveNormalForces.set( NULL );
+#endif
         }
     }
     ~Pimpl()
@@ -263,7 +270,9 @@ namespace ocra
 
           case(ACCELERATIONTASK):
           {
+              std::string home = std::string("/home/jorhabib/Documents/debugging/" + getName());
               updateAccelerationTask();
+              ocra::utils::writeToFile(getError(), home);
               break;
           }
           case(TORQUETASK):
@@ -657,6 +666,9 @@ void Task::disconnectFromController()
     if (pimpl->frictionConstraintIsRegisteredInConstraint)
     {
         pimpl->solver->removeConstraint(pimpl->frictionConstraint);
+#ifdef ADD_POSITIVE_NORMALS_CONSTRAINT
+        pimpl->solver->removeConstraint(pimpl->positiveNormalForces);
+#endif
     }
     if (pimpl->contactForceConstraintHasBeenSavedInSolver)
     {
@@ -857,6 +869,10 @@ void Task::doActivateContactMode()
 
     // add friction cone in constraint
     pimpl->solver->addConstraint(pimpl->frictionConstraint);
+#ifdef ADD_POSITIVE_NORMALS_CONSTRAINT
+    // add positiveness of the contact wrenches as an inequality constraint
+    pimpl->solver->addConstraint(pimpl->positiveNormalForces);
+#endif
     pimpl->frictionConstraintIsRegisteredInConstraint = true;
 }
 
@@ -874,6 +890,9 @@ void Task::doDeactivateContactMode()
 
     // remove friction cone from constraint set
     pimpl->solver->removeConstraint(pimpl->frictionConstraint);
+#ifdef ADD_POSITIVE_NORMALS_CONSTRAINT
+    pimpl->solver->removeConstraint(pimpl->positiveNormalForces);
+#endif
     pimpl->frictionConstraintIsRegisteredInConstraint = false;
 }
 

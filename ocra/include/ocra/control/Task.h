@@ -21,12 +21,13 @@
 #include "ocra/optim/OneLevelSolver.h"
 #include "ocra/control/ControlConstraint.h"
 #include "ocra/optim/LinearizedCoulombFunction.h"
+#include "ocra/optim/PositiveNormalContactForces.h"
 #include "ocra/optim/VariableChiFunction.h"
 #include "ocra/optim/FcQuadraticFunction.h"
 
+#include "ocra/util/FileOperations.h"
 
-
-
+#define ADD_POSITIVE_NORMALS_CONSTRAINT
 
 namespace ocra
 {
