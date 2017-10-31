@@ -240,22 +240,41 @@ bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfSta
     int i = 0;
     if (bottle.get(i).asInt() == TASK_STATE_BOTTLE)
     {
+#ifdef OCRA_USES_KDL
+        this->containsPositionKDL = bottle.get(++i).asBool();
+        this->containsVelocityKDL = bottle.get(++i).asBool();
+        this->containsAccelerationKDL = bottle.get(++i).asBool();
+#else
         this->containsPosition = bottle.get(++i).asBool();
         this->containsVelocity = bottle.get(++i).asBool();
         this->containsAcceleration = bottle.get(++i).asBool();
+#endif
         this->containsQ = bottle.get(++i).asBool();
         this->containsQd = bottle.get(++i).asBool();
         this->containsQdd = bottle.get(++i).asBool();
         this->containsTorque = bottle.get(++i).asBool();
-        this->containsWrench = bottle.get(++i).asBool();
-        this->containsPositionKDL = bottle.get(++i).asBool();
-        this->containsVelocityKDL = bottle.get(++i).asBool();
-        this->containsAccelerationKDL = bottle.get(++i).asBool();
+#ifdef OCRA_USES_KDL
         this->containsWrenchKDL = bottle.get(++i).asBool();
+#else
+        this->containsWrench = bottle.get(++i).asBool();
+#endif
 
         int indexesToSkip;
 
-
+#ifdef OCRA_USES_KDL
+        if (this->hasPositionKDL()) {
+            this->setPositionKDL( util::pourBottleIntoFrame(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+        if (this->hasVelocityKDL()) {
+            this->setVelocityKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+        if (this->hasAccelerationKDL()) {
+            this->setAccelerationKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+#else
         if (this->hasPosition()) {
             this->setPosition( util::pourBottleIntoDisplacementd(util::trimBottle(bottle, i+1), indexesToSkip) );
             i += indexesToSkip;
@@ -268,6 +287,7 @@ bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfSta
             this->setAcceleration( util::pourBottleIntoTwistd(util::trimBottle(bottle, i+1), indexesToSkip) );
             i += indexesToSkip;
         }
+#endif
         if (this->hasQ()) {
             this->setQ( util::pourBottleIntoEigenVector(util::trimBottle(bottle, i+1), indexesToSkip) );
             i += indexesToSkip;
@@ -284,27 +304,18 @@ bool TaskState::extractFromBottle(const yarp::os::Bottle& bottle, int& sizeOfSta
             this->setTorque( util::pourBottleIntoEigenVector(util::trimBottle(bottle, i+1), indexesToSkip) );
             i += indexesToSkip;
         }
-        if (this->hasWrench()) {
-            this->setWrench( util::pourBottleIntoWrenchd(util::trimBottle(bottle, i+1), indexesToSkip) );
-            i += indexesToSkip;
-        }
-
-        if (this->hasPositionKDL()) {
-            this->setPositionKDL( util::pourBottleIntoFrame(util::trimBottle(bottle, i+1), indexesToSkip) );
-            i += indexesToSkip;
-        }
-        if (this->hasVelocityKDL()) {
-            this->setVelocityKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
-            i += indexesToSkip;
-        }
-        if (this->hasAccelerationKDL()) {
-            this->setAccelerationKDL( util::pourBottleIntoTwist(util::trimBottle(bottle, i+1), indexesToSkip) );
-            i += indexesToSkip;
-        }
+#ifdef OCRA_USES_KDL
         if (this->hasWrenchKDL()) {
             this->setWrenchKDL( util::pourBottleIntoWrench(util::trimBottle(bottle, i+1), indexesToSkip) );
             i += indexesToSkip;
         }
+#else
+        if (this->hasWrench()) {
+            this->setWrench( util::pourBottleIntoWrenchd(util::trimBottle(bottle, i+1), indexesToSkip) );
+            i += indexesToSkip;
+        }
+#endif
+
 
         sizeOfState = i;
         return true;
@@ -317,19 +328,38 @@ void TaskState::putIntoBottle(yarp::os::Bottle& bottle) const
 {
     bottle.addInt(TASK_STATE_BOTTLE);
 
+#ifdef OCRA_USES_KDL
+    bottle.addInt(this->hasPositionKDL());
+    bottle.addInt(this->hasVelocityKDL());
+    bottle.addInt(this->hasAccelerationKDL());
+#else
     bottle.addInt(this->hasPosition());
     bottle.addInt(this->hasVelocity());
     bottle.addInt(this->hasAcceleration());
+#endif
+    
     bottle.addInt(this->hasQ());
     bottle.addInt(this->hasQd());
     bottle.addInt(this->hasQdd());
     bottle.addInt(this->hasTorque());
-    bottle.addInt(this->hasWrench());
-    bottle.addInt(this->hasPositionKDL());
-    bottle.addInt(this->hasVelocityKDL());
-    bottle.addInt(this->hasAccelerationKDL());
+    
+#ifdef OCRA_USES_KDL
     bottle.addInt(this->hasWrenchKDL());
+#else
+    bottle.addInt(this->hasWrench());
+#endif
 
+#ifdef OCRA_USES_KDL
+    if (this->hasPositionKDL()) {
+        util::pourFrameIntoBottle(this->getPositionKDL(), bottle);
+    }
+    if (this->hasVelocityKDL()) {
+        util::pourTwistIntoBottle(this->getVelocityKDL(), bottle);
+    }
+    if (this->hasAccelerationKDL()) {
+        util::pourTwistIntoBottle(this->getAccelerationKDL(), bottle);
+    }
+#else
     if (this->hasPosition()) {
         util::pourDisplacementdIntoBottle(this->getPosition(), bottle);
     }
@@ -339,6 +369,7 @@ void TaskState::putIntoBottle(yarp::os::Bottle& bottle) const
     if (this->hasAcceleration()) {
         util::pourTwistdIntoBottle(this->getAcceleration(), bottle);
     }
+#endif
     if (this->hasQ()) {
         util::pourEigenVectorIntoBottle(this->getQ(), bottle);
     }
@@ -351,21 +382,15 @@ void TaskState::putIntoBottle(yarp::os::Bottle& bottle) const
     if (this->hasTorque()) {
         util::pourEigenVectorIntoBottle(this->getTorque(), bottle);
     }
-    if (this->hasWrench()) {
-        util::pourWrenchdIntoBottle(this->getWrench(), bottle);
-    }
-
-    if (this->hasPositionKDL()) {
-        util::pourFrameIntoBottle(this->getPositionKDL(), bottle);
-    }
-    if (this->hasVelocityKDL()) {
-        util::pourTwistIntoBottle(this->getVelocityKDL(), bottle);
-    }
-    if (this->hasAccelerationKDL()) {
-        util::pourTwistIntoBottle(this->getAccelerationKDL(), bottle);
-    }
+#ifdef OCRA_USES_KDL
     if (this->hasWrenchKDL()) {
         util::pourWrenchIntoBottle(this->getWrenchKDL(), bottle);
     }
+#else
+    if (this->hasWrench()) {
+        util::pourWrenchdIntoBottle(this->getWrench(), bottle);
+    }
+#endif
+
 
 }

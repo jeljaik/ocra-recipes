@@ -7,6 +7,8 @@
 #include <Eigen/Lgsm>
 #include <yarp/os/Bottle.h>
 #include <kdl/frames.hpp>
+#include <kdl/frames_io.hpp>
+#include <ocra/util/ErrorsHelper.h>
 
 namespace ocra
 {
@@ -208,16 +210,23 @@ inline void pourWrenchdIntoBottle(const Eigen::Wrenchd& wrench, yarp::os::Bottle
 
 inline void pourFrameIntoBottle(const KDL::Frame& frame, yarp::os::Bottle& bottle)
 {
-    const int KDL_FRAME_AS_VECTOR_SIZE = 16;
+    const int KDL_FRAME_AS_VECTOR_SIZE = 12;
     bottle.addInt(KDL_FRAME_AS_VECTOR_SIZE);
 
-    for (int i=0; i<4; ++i)
-    {
-        for(int j=0; j<4; ++j)
-        {
-            bottle.addDouble(frame(i,j));
-        }
-    }
+    KDL::Vector p = frame.p;
+    KDL::Vector unitx = frame.M.UnitX();
+    KDL::Vector unity = frame.M.UnitY();
+    KDL::Vector unitz = frame.M.UnitZ();
+    
+    for (int i=0; i<3; ++i)
+        bottle.addDouble(p(i));
+    for (int i=0; i<3; ++i)
+        bottle.addDouble(unitx(i));
+    for (int i=0; i<3; ++i)
+        bottle.addDouble(unity(i));
+    for (int i=0; i<3; ++i)
+        bottle.addDouble(unitz(i));
+    
 }
 
 inline void pourTwistIntoBottle(const KDL::Twist& twist, yarp::os::Bottle& bottle)
@@ -251,12 +260,32 @@ inline KDL::Frame pourBottleIntoFrame(yarp::os::Bottle bottle, int& indexesToSki
 {
     int nVals = bottle.get(0).asInt();
     double frame_as_array[nVals];
-    for (int i=0; i<nVals; ++i)
+    int skip = 3;
+        
+    for (int i=1; i<nVals+1; ++i)
     {
-        frame_as_array[i] = bottle.get(i).asDouble();
+        frame_as_array[i-1] = bottle.get(i).asDouble();
     }
+    
     KDL::Frame frame;
-    frame.Make4x4(frame_as_array);
+    for (int i=0; i<3; i++)
+        frame.p(i) = frame_as_array[i];
+    KDL::Vector tmpUnitx;
+    for (int i=0; i<3; i++)
+        tmpUnitx(i) = frame_as_array[i+skip];
+    skip += 3;
+    KDL::Vector tmpUnity;
+    for (int i=0; i<3; i++)
+        tmpUnity(i) = frame_as_array[i+skip];
+    skip += 3;
+    KDL::Vector tmpUnitz;
+    for (int i=0; i<3; i++)
+        tmpUnitz(i) = frame_as_array[i+skip];
+    
+    frame.M.UnitX(tmpUnitx);
+    frame.M.UnitY(tmpUnity);
+    frame.M.UnitZ(tmpUnitz);
+    
     indexesToSkip = nVals + 1;
     return frame;
 }
