@@ -42,7 +42,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Lgsm>
-
+#include <ocra/util/FileOperations.h>
 
 // TODO: Should put in defines for yarp independent builds
 #include <yarp/os/Bottle.h>

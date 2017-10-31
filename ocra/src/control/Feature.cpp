@@ -1440,6 +1440,11 @@ const VectorXd& DisplacementFeature::computeError(const Feature& featureDes) con
   {
     const FullStateFeature& sdes = dynamic_cast<const FullStateFeature&>(featureDes);
     pimpl->error = pimpl->state->q() - sdes.pimpl->state->q();
+    std::string destCurrentState = std::string("/home/jorhabib/Documents/debugging/currentPosture");
+    std::string destDesiredState = std::string("/home/jorhabib/Documents/debugging/desiredPosture");
+    ocra::utils::writeToFile(pimpl->state->q(), destCurrentState);
+    ocra::utils::writeToFile(sdes.pimpl->state->q(), destDesiredState);
+
     return pimpl->error;
   }
 

@@ -25,6 +25,7 @@
 #include "ocra/control/TaskState.h"
 #include <ocra/util/Macros.h>
 #include "ocra/util/KDLUtilities.h"
+#include "ocra/util/FileOperations.h"
 
 #include <Eigen/Lgsm>
 #include <boost/shared_ptr.hpp>

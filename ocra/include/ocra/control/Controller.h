@@ -23,6 +23,7 @@ File history:
 #include <vector>
 #include <map>
 #include <ocra/util/Macros.h>
+#include <ocra/util/FileOperations.h>
 
 // #include "ocra/control/Controller.h"
 #include "ocra/control/Task.h"

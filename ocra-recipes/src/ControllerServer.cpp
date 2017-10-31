@@ -128,9 +128,15 @@ void ControllerServer::updateModel()
     if (model->hasFixedRoot()){
         model->setState(rState.q, rState.qd);
     }else{
+//         std::string home = "/home/jorhabib/Documents/debugging";
+//         std::string twistHome = std::string(home + "/fbTwist");
+//         std::string positionHome = std::string(home + "/fbPosition");
         model->setState(rState.H_root, rState.q, rState.T_root, rState.qd);
+//         ocra::utils::writeToFile(rState.T_root, twistHome);
+//         Eigen::Vector3d transTmp = rState.H_root.getTranslation();
+//         ocra::utils::writeToFile(transTmp, positionHome);
+//         ocra::utils::writeToFile(rState.T_root, twistHome);
     }
-    std::cout << "LGSM state: \n" << rState << std::endl;
     if (!statesPort.write( rState)) {
         OCRA_ERROR("Couldn't write robot state for client. Not really doing anything about it, except reporting.");
     }
@@ -139,6 +145,18 @@ void ControllerServer::updateModel()
 void ControllerServer::updateModelKDL()
 {
     getRobotStateKDL(rState.q, rState.qd, rState.H_rootKDL, rState.T_rootKDL);
+    Eigen::VectorXd troot(6);
+    troot = ocra::util::KDLTwistToEigenVectorXd(rState.T_rootKDL);
+    //TODO: FOR DEBUGGING PURPOSES. REMOVE THESE LINES IF IT'S WRONG.
+    Eigen::VectorXd tmpRoot(6); tmpRoot.setZero();
+    rState.T_rootKDL = KDL::Twist::Zero();
+    Eigen::VectorXd tmpRootPos(3);
+    tmpRootPos = ocra::util::KDLVectorToEigenVector3d(rState.H_rootKDL.p);
+    std::string home = "/home/jorhabib/Documents/debugging";
+    std::string twistHome = std::string(home + "/fbTwist");
+    std::string positionHome = std::string(home + "/fbPosition");
+    ocra::utils::writeToFile(troot,twistHome);
+    ocra::utils::writeToFile(tmpRootPos,positionHome);
     if (model->hasFixedRoot()){
         model->setState(rState.q, rState.qd);
     } else {

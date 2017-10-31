@@ -268,6 +268,10 @@ namespace ocra
     }
 
     doComputeOutput(tau);
+    std::string homeTauCom = "/home/jorhabib/Documents/debugging/commandedTorques";
+    std::string homeTauCurr = "/home/jorhabib/Documents/debugging/currentTorques";
+    ocra::utils::writeToFile(tau, homeTauCom);
+    ocra::utils::writeToFile(pimpl->model.getJointTorques(), homeTauCurr);
 
     if(pimpl->errorFlag & CRITICAL_ERROR)
     {
